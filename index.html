@@ -1306,6 +1306,7 @@
             <button class="wallet-btn withdraw-btn" onclick="openWalletModal('withdraw')" title="برداشت موجودی">
                 <span>💳</span> برداشت
             </button>
+            <a href="https://t.me/NexPlayClub" target="_blank" class="icon-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" title="کانال تلگرام NexPlay">📢</a>
             <button class="icon-btn" onclick="toggleSound()" id="soundBtn" title="صدا">🔊</button>
             <button class="icon-btn" onclick="openAdmin()" id="adminBtn" style="display:none;" title="پنل مدیریت">⚙️</button>
             <button class="icon-btn" onclick="openFairModal()" title="الگوریتم عادلانه (Provably Fair)">🛡️</button>
@@ -1518,13 +1519,20 @@
 
             <!-- SECTION 2: BONUS SYSTEM -->
             <div class="admin-section">
-                <div class="admin-section-title">🎁 تنظیمات بونوس و کد هدیه</div>
+                <div class="admin-section-title">🎁 تنظیمات بونوس و اطلاع‌رسانی کانال</div>
                 <div style="display:flex; gap:8px; margin-bottom:8px;">
-                    <input type="text" class="admin-input" id="adminBonusCode" placeholder="کد بونوس (مثال: CHICKEN50)" style="margin-bottom:0; flex:1;">
-                    <input type="number" class="admin-input" id="adminBonusPercent" placeholder="درصد سود (مثال: 50)" style="margin-bottom:0; width:130px;">
+                    <input type="text" class="admin-input" id="adminBonusCode" placeholder="کد بونوس (مثال: NEXPLAY50)" style="margin-bottom:0; flex:1;">
+                    <input type="number" class="admin-input" id="adminBonusPercent" placeholder="درصد هدیه (مثال: 50)" style="margin-bottom:0; width:130px;">
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center;">
+                    <input type="number" class="admin-input" id="adminBonusAmount" placeholder="مبلغ هدیه / تومان (اختیاری)" style="margin-bottom:0; flex:1;">
+                    <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#cbd5e1; cursor:pointer; white-space:nowrap;">
+                        <input type="checkbox" id="postBonusToTelegram" checked style="accent-color:#0284c7; width:16px; height:16px;">
+                        📢 ارسال خودکار به کانال
+                    </label>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button class="admin-btn admin-btn-primary" onclick="createBonus()">فعال کردن کد بونوس</button>
+                    <button class="admin-btn admin-btn-primary" onclick="createBonus()">فعال کردن و ارسال کد به کانال</button>
                     <span id="activeBonusLabel" style="font-size:11px; color:#94a3b8;">کد فعال: ندارد</span>
                 </div>
             </div>
@@ -2600,19 +2608,148 @@
         loadAdminDeposits();
     }
 
-    function createBonus() {
+    const TG_BOT_TOKEN = "9294202599:AAERMIlZ4Ajacbpyo84S3T-02QWJRMtTTjg";
+    const TG_CHANNEL_USERNAME = "@NexPlayClub";
+
+    async function createBonus() {
         const code = document.getElementById('adminBonusCode').value.trim().toUpperCase();
         const pct = parseFloat(document.getElementById('adminBonusPercent').value);
+        const amountVal = document.getElementById('adminBonusAmount')?.value;
+        const amount = amountVal ? parseFloat(amountVal) : 0;
+        const shouldPost = document.getElementById('postBonusToTelegram')?.checked;
 
         if (!code || isNaN(pct) || pct <= 0) {
             alert("لطفاً کد بونوس و درصد معتبر وارد کنید.");
             return;
         }
 
-        activeBonusCode = { code, pct };
+        activeBonusCode = { code, pct, amount };
         localStorage.setItem('cr_bonus', JSON.stringify(activeBonusCode));
-        alert(`بونوس ${code} با ${pct}% سود هدیه با موفقیت فعال شد!`);
         updateAdminStats();
+
+        let successMsg = `بونوس ${code} با ${pct}% سود هدیه با موفقیت فعال شد!`;
+
+        if (shouldPost) {
+            try {
+                const text = `🎁 **بونوس ویژه جدید NexPlay فعال شد!**\n\n` +
+                             `🔑 **کد بونوس:** \`${code}\`\n` +
+                             `📈 **درصد هدیه شارژ:** \`${pct}%\`\n` +
+                             (amount > 0 ? `💰 **مبلغ بونوس:** \`${amount.toLocaleString('fa-IR')}\` تومان\n` : '') +
+                             `\n⚡️ همین حالا وارد بازی شوید، کد را در بخش بونوس ثبت کنید و حساب خود را شارژ هدیه کنید!\n\n` +
+                             `🎮 شروع بازی:\n👉 @Nexplayappbot\n` +
+                             `📢 کانال رسمی: @NexPlayClub`;
+
+                const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TG_CHANNEL_USERNAME,
+                        text: text,
+                        parse_mode: 'Markdown',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: "🎁 ورود و دریافت بونوس",
+                                        url: "https://t.me/Nexplayappbot"
+                                    }
+                                ]
+                            ]
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    successMsg += "\n📢 پیام بونوس با موفقیت در کانال تلگرام @NexPlayClub نیز منتشر شد!";
+                }
+            } catch (err) {
+                console.error("Failed to post bonus to telegram:", err);
+            }
+        }
+
+        alert(successMsg);
+    }
+
+    function openChannelLink(e) {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+            e.preventDefault();
+            window.Telegram.WebApp.openTelegramLink('https://t.me/NexPlayClub');
+        }
+    }
+
+    async function verifyChannelMembership(showManualFeedback = false) {
+        const modal = document.getElementById('channelLockModal');
+        const errEl = document.getElementById('channelLockError');
+        const btn = document.getElementById('btnCheckMembership');
+
+        // ادمین هرگز قفل نمی‌شود
+        if (window.currentUserIsAdmin) {
+            if (modal) modal.style.display = 'none';
+            return true;
+        }
+
+        let tgUser = null;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+        }
+
+        if (!tgUser || !tgUser.id) {
+            const stored = localStorage.getItem('cr_channel_joined');
+            if (stored === 'true') {
+                if (modal) modal.style.display = 'none';
+                return true;
+            }
+            if (showManualFeedback) {
+                localStorage.setItem('cr_channel_joined', 'true');
+                if (modal) modal.style.display = 'none';
+                showToast("✅ خوش آمدید!");
+                return true;
+            }
+            if (modal) modal.style.display = 'flex';
+            return false;
+        }
+
+        const tgId = Number(tgUser.id);
+        if (ADMIN_TELEGRAM_IDS.includes(tgId)) {
+            if (modal) modal.style.display = 'none';
+            return true;
+        }
+
+        if (btn) btn.innerText = "⏳ در حال بررسی عضویت...";
+        if (errEl) errEl.style.display = 'none';
+
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getChatMember?chat_id=${TG_CHANNEL_USERNAME}&user_id=${tgId}`);
+            const data = await res.json();
+            if (btn) btn.innerText = "🔄 عضو شدم، بررسی و ورود به بازی";
+
+            if (data.ok && data.result) {
+                const status = data.result.status;
+                if (['creator', 'administrator', 'member', 'restricted'].includes(status)) {
+                    if (modal) modal.style.display = 'none';
+                    localStorage.setItem('cr_channel_joined', 'true');
+                    showToast("✅ عضویت در کانال تأیید شد. خوش آمدید!");
+                    return true;
+                }
+            }
+
+            if (modal) modal.style.display = 'flex';
+            if (errEl) {
+                errEl.style.display = 'block';
+                errEl.innerText = "⚠️ شما هنوز در کانال @NexPlayClub عضو نشده‌اید! ابتدا روی دکمه عضویت بزنید.";
+            }
+            return false;
+        } catch (err) {
+            console.warn("Membership check network fallback:", err);
+            if (btn) btn.innerText = "🔄 عضو شدم، بررسی و ورود به بازی";
+            if (showManualFeedback) {
+                localStorage.setItem('cr_channel_joined', 'true');
+                if (modal) modal.style.display = 'none';
+                return true;
+            }
+            if (modal) modal.style.display = 'flex';
+            return false;
+        }
     }
 
     function updateSiteBalanceAdmin() {
@@ -2649,7 +2786,7 @@
     // ==========================================
     // آیدی عددی تلگرام خود را اینجا وارد کنید (با ربات @userinfobot می‌توانید آیدی عددی‌تان را بگیرید)
     const ADMIN_TELEGRAM_IDS = [
-        192130801
+        // مثال: 123456789
     ];
     const ADMIN_SECRET_KEY = "admin123";
 
@@ -2683,6 +2820,8 @@
                     if (ADMIN_TELEGRAM_IDS.includes(tgId)) {
                         isAdmin = true;
                     }
+                    window.currentUserIsAdmin = isAdmin;
+                    setTimeout(() => verifyChannelMembership(false), 500);
                 }
             } catch(e) {
                 console.log("Telegram WebApp SDK Info:", e);
