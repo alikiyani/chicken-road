@@ -1276,6 +1276,48 @@
         text-align: left;
     }
 
+    
+    /* USER ADMIN & EXTENDED MODALS */
+    #channelLockModal, #referralModal, #blockedModal {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 11, 14, 0.94);
+        backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 16px;
+        direction: rtl;
+    }
+    #channelLockModal.show, #referralModal.show, #blockedModal.show {
+        display: flex;
+    }
+    .user-admin-card {
+        background: #0f172a;
+        border: 1.5px solid #1e293b;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .user-admin-card:hover {
+        border-color: #334155;
+    }
+    .user-badge {
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .user-badge-active { background: #166534; color: #4ade80; border: 1px solid #22c55e; }
+    .user-badge-blocked { background: #991b1b; color: #fca5a5; border: 1px solid #ef4444; }
+    .user-badge-freebonus { background: #854d0e; color: #fef08a; border: 1px solid #eab308; }
+
     /* BONUS WALLET & WAGERING SYSTEM */
     .balance-box.bonus-box {
         background: linear-gradient(135deg, rgba(234, 179, 8, 0.16) 0%, #0d0f14 100%);
@@ -1441,15 +1483,15 @@
             <!-- BALANCE WITH DUAL CURRENCY TOGGLE -->
             <div class="balance-wrapper">
                 <div class="currency-toggle">
-                    <button class="toggle-btn active" id="btnToman" onclick="setCurrency(toman)">تومان</button>
-                    <button class="toggle-btn" id="btnDollar" onclick="setCurrency(dollar)">$</button>
+                    <button class="toggle-btn active" id="btnToman" onclick="setCurrency('toman')">تومان</button>
+                    <button class="toggle-btn" id="btnDollar" onclick="setCurrency('dollar')">$</button>
                 </div>
-                <div class="balance-box" onclick="openWalletModal(deposit)" title="موجودی نقدی اصلی (کلیک برای شارژ)">
+                <div class="balance-box" onclick="openWalletModal('deposit')" title="موجودی نقدی اصلی (کلیک برای شارژ)">
                     <span>💵</span>
                     <span id="balanceDisplay">270,000</span>
                     <span class="currency-label" id="currencyLabel">تومان</span>
                 </div>
-                <div class="balance-box bonus-box" onclick="openWalletModal(bonus)" title="کیف پول بونوس (کلیک برای شرایط گردش ۲ برابری)">
+                <div class="balance-box bonus-box" onclick="openWalletModal('bonus')" title="کیف پول بونوس (کلیک برای شرایط گردش ۲ برابری)">
                     <span>🎁</span>
                     <span id="bonusBalanceDisplay">0</span>
                     <span class="currency-label" id="bonusCurrencyLabel">تومان</span>
@@ -1462,6 +1504,7 @@
             <button class="wallet-btn withdraw-btn" onclick="openWalletModal('withdraw')" title="برداشت موجودی">
                 <span>💳</span> برداشت
             </button>
+            <button class="icon-btn" onclick="openReferralModal()" title="👥 دعوت دوستان و دریافت ۱ دلار پاداش">👥</button>
             <a href="https://t.me/NexPlayClub" target="_blank" class="icon-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center;" title="کانال تلگرام NexPlay">📢</a>
             <button class="icon-btn" onclick="toggleSound()" id="soundBtn" title="صدا">🔊</button>
             <button class="icon-btn" onclick="openAdmin()" id="adminBtn" style="display:none;" title="پنل مدیریت">⚙️</button>
@@ -1499,7 +1542,7 @@
         <div class="wallet-selector-bar">
             <div class="wallet-selector-header">
                 <span>کیف پول انتخابی شرط‌بندی:</span>
-                <span style="cursor:pointer; color:#38bdf8;" onclick="openWalletModal(bonus)">شرایط گردش بونوس ℹ️</span>
+                <span style="cursor:pointer; color:#38bdf8;" onclick="openWalletModal('bonus')">شرایط گردش بونوس ℹ️</span>
             </div>
             <div class="wallet-selector-btns">
                 <button type="button" class="wallet-chip active" id="walletChipCash" onclick="selectBetWallet(cash)">
@@ -1758,6 +1801,22 @@
                 <span class="close-x" onclick="closeAdmin()" title="بستن">✖</span>
             </div>
             
+            
+            <!-- SECTION 0: USER MANAGEMENT & SEARCH -->
+            <div class="admin-section">
+                <div class="admin-section-title">
+                    <span>👥 مدیریت کاربران و اعضا</span>
+                    <span class="admin-badge" id="adminUsersCount">0 کاربر</span>
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="text" class="admin-input" id="adminUserSearchInput" placeholder="🔍 جستجو بر اساس آیدی، نام یا نام‌کاربری..." style="margin-bottom:0; flex:1;" oninput="filterAdminUsers()">
+                    <button class="admin-btn admin-btn-secondary" onclick="loadAdminUsers()" title="به‌روزرسانی لیست">🔄</button>
+                </div>
+                <div id="adminUsersList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:2px;">
+                    <div style="color:#64748b; font-size:12px; padding:12px; text-align:center;">در حال بارگذاری کاربران...</div>
+                </div>
+            </div>
+
             <!-- SECTION 1: PENDING DEPOSITS -->
             <div class="admin-section">
                 <div class="admin-section-title">
@@ -1783,9 +1842,16 @@
                         📢 ارسال خودکار به کانال
                     </label>
                 </div>
+                <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                    <button class="admin-btn admin-btn-primary" onclick="createBonus()" style="flex:1;">فعال کردن و ارسال کد به کانال</button>
+                    <button class="admin-btn admin-btn-danger" onclick="deactivateBonus()" style="padding:6px 12px; font-size:11px;">غیرفعال‌سازی بونوس</button>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <button class="admin-btn admin-btn-primary" onclick="createBonus()">فعال کردن و ارسال کد به کانال</button>
                     <span id="activeBonusLabel" style="font-size:11px; color:#94a3b8;">کد فعال: ندارد</span>
+                </div>
+                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #334155; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:#c084fc;">📢 چالش دعوت: با هر عضو جدید ۱ دلار بونوس</span>
+                    <button class="admin-btn" style="background:#7e22ce; color:#fff;" onclick="postReferralCampaignToTelegram()">ارسال به کانال</button>
                 </div>
             </div>
 
@@ -1815,16 +1881,84 @@
                 <div class="admin-section-title">💱 نرخ برابری دلار / تومان</div>
                 <div class="admin-stat-row">
                     <span>نرخ جاری هر تتر/دلار:</span>
-                    <b id="adminRateDisplay">60,000 تومان</b>
+                    <b id="adminRateDisplay">270,000 تومان</b>
                 </div>
                 <div style="display:flex; gap:8px; margin-top:8px;">
-                    <input type="number" class="admin-input" id="adminRateInput" placeholder="نرخ دستی دلار به تومان" style="margin-bottom:0; flex:1;">
+                    <input type="number" class="admin-input" id="adminRateInput" placeholder="نرخ دستی دلار (پیش‌فرض: 270000)" value="270000" style="margin-bottom:0; flex:1;">
                     <button class="admin-btn admin-btn-secondary" onclick="setManualRate()">تنظیم نرخ</button>
                     <button class="admin-btn admin-btn-primary" onclick="fetchExchangeRate(true)">به‌روزرسانی آنلاین</button>
                 </div>
             </div>
 
-            <button class="admin-btn admin-btn-danger" onclick="closeAdmin()" style="width:100%; margin-top:6px;">خروج از پنل مدیریت</button>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <button class="admin-btn admin-btn-secondary" onclick="testChannelLockModal()" style="flex:1;">🧪 پیش‌نمایش قفل کانال</button>
+                <button class="admin-btn admin-btn-danger" onclick="closeAdmin()" style="flex:1;">خروج از پنل مدیریت</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL: CHANNEL MEMBERSHIP LOCK -->
+    <div id="channelLockModal">
+        <div style="background:linear-gradient(145deg, #1e293b, #0f172a); border:2px solid #38bdf8; border-radius:20px; padding:24px; text-align:center; max-width:350px; width:92%; box-shadow:0 0 35px rgba(56,189,248,0.35);">
+            <div style="font-size:48px; margin-bottom:8px;">📢</div>
+            <h3 style="color:#38bdf8; font-size:18px; margin-bottom:10px; font-weight:900;">عضویت در کانال الزامی است</h3>
+            <p style="color:#cbd5e1; font-size:13px; line-height:1.7; margin-bottom:16px;">
+                برای دسترسی به بازی، دریافت بونوس و ثبت شرط، لطفاً ابتدا در کانال رسمی <b>NexPlay</b> عضو شوید.
+            </p>
+            <button onclick="openChannelLink(event)" class="modal-btn" style="background:linear-gradient(90deg, #0284c7, #38bdf8); color:#fff; font-weight:800; width:100%; margin-bottom:10px; padding:12px; border-radius:10px; border:none; cursor:pointer;">
+                📢 عضویت در کانال @NexPlayClub
+            </button>
+            <button id="btnCheckMembership" onclick="verifyChannelMembership(true)" class="modal-btn" style="background:#22c55e; color:#fff; font-weight:800; width:100%; padding:12px; border-radius:10px; border:none; cursor:pointer;">
+                🔄 عضو شدم، بررسی و ورود به بازی
+            </button>
+            <div id="channelLockError" style="display:none; color:#f87171; font-size:12px; margin-top:12px; font-weight:600; line-height:1.5;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: REFERRAL & EARN (INVITE) -->
+    <div id="referralModal">
+        <div style="background:linear-gradient(145deg, #1e293b, #0f172a); border:1.5px solid #a855f7; border-radius:20px; padding:22px; text-align:center; max-width:360px; width:90%; box-shadow:0 0 30px rgba(168,85,247,0.3); position:relative;">
+            <span class="close-x" onclick="closeReferralModal()" style="position:absolute; top:12px; left:14px; color:#94a3b8; font-size:18px; cursor:pointer;">✖</span>
+            <div style="font-size:42px; margin-bottom:6px;">👥</div>
+            <h3 style="color:#c084fc; font-size:18px; margin-bottom:8px; font-weight:900;">دعوت از دوستان و کسب درآمد</h3>
+            <p style="color:#cbd5e1; font-size:12px; line-height:1.6; margin-bottom:14px;">
+                لینک اختصاصی خود را برای دوستان بفرستید. با ورود و اولین واریزی آن‌ها، <b>۱ دلار (۲۷۰,۰۰۰ تومان) پاداش</b> دریافت کنید!
+            </p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:10px; border:1px solid #334155;">
+                    <div style="font-size:11px; color:#94a3b8;">افراد دعوت‌شده</div>
+                    <b id="refCountDisplay" style="color:#38bdf8; font-size:18px;">0 نفر</b>
+                </div>
+                <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:10px; border:1px solid #334155;">
+                    <div style="font-size:11px; color:#94a3b8;">واریزکرده‌ها</div>
+                    <b id="refDepCountDisplay" style="color:#4ade80; font-size:18px;">0 نفر</b>
+                </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.4); border:1.5px dashed #a855f7; border-radius:12px; padding:10px; margin-bottom:12px; text-align:right;">
+                <span style="font-size:11px; color:#94a3b8;">لینک اختصاصی شما:</span>
+                <input type="text" id="refLinkInput" readonly style="width:100%; background:transparent; border:none; color:#f8fafc; font-size:12px; direction:ltr; text-align:left; outline:none; margin-top:4px;" value="">
+            </div>
+
+            <button onclick="copyReferralLink()" class="modal-btn" style="background:linear-gradient(90deg, #9333ea, #c084fc); color:#fff; font-weight:800; width:100%; padding:11px; border-radius:10px; border:none; cursor:pointer;">
+                📋 کپی لینک دعوت
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: BLOCKED USER SCREEN -->
+    <div id="blockedModal">
+        <div style="background:#111827; border:2px solid #ef4444; border-radius:18px; padding:24px; text-align:center; max-width:340px; width:90%; box-shadow:0 0 30px rgba(239,68,68,0.4);">
+            <div style="font-size:48px; margin-bottom:12px;">🚫</div>
+            <h3 style="color:#ef4444; font-size:18px; margin-bottom:10px; font-weight:800;">حساب کاربری مسدود است</h3>
+            <p style="color:#cbd5e1; font-size:13px; line-height:1.6; margin-bottom:16px;">
+                دسترسی حساب شما به بازی و امور مالی توسط مدیریت مسدود شده است. برای پیگیری با پشتیبانی کانال تماس بگیرید.
+            </p>
+            <a href="https://t.me/NexPlayClub" target="_blank" class="modal-btn" style="background:#0284c7; text-decoration:none; display:inline-block; padding:10px 18px; border-radius:8px; color:#fff; font-weight:700;">
+                📢 ارتباط با پشتیبانی کانال
+            </a>
         </div>
     </div>
 
@@ -1906,7 +2040,7 @@
     // ==========================================
     // CURRENCY, PERSISTENCE & USER STATE
     // ==========================================
-    let USD_TO_TOMAN = parseFloat(localStorage.getItem('cr_rate') || '60000');
+    let USD_TO_TOMAN = parseFloat(localStorage.getItem('cr_rate') || '270000');
     let currentCurrency = localStorage.getItem('cr_currency') || 'toman'; // 'toman' or 'dollar'
 
     let users = JSON.parse(localStorage.getItem('cr_users') || '{}');
@@ -2044,18 +2178,22 @@
     // CURRENCY & EXCHANGE RATE HELPERS
     // ==========================================
     async function fetchExchangeRate(notify = false) {
+        if (localStorage.getItem('cr_rate_manual') === 'true' && !notify) {
+            // نرخ دستی توسط ادمین تنظیم شده و نباید خودکار بازنویسی شود
+            updateBalanceUI();
+            updateAdminStats();
+            return;
+        }
+
         try {
             const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             const data = await res.json();
             if (data && data.rates && data.rates.IRR) {
-                // In official bank rate IRR is high; open market Toman usually 60,000 - 80,000
                 const calculatedToman = Math.round(data.rates.IRR / 10);
-                if (calculatedToman >= 40000 && calculatedToman <= 250000) {
+                if (calculatedToman >= 40000 && calculatedToman <= 350000) {
                     USD_TO_TOMAN = calculatedToman;
-                } else {
-                    if (!localStorage.getItem('cr_rate')) USD_TO_TOMAN = 60000;
+                    localStorage.setItem('cr_rate', USD_TO_TOMAN.toString());
                 }
-                localStorage.setItem('cr_rate', USD_TO_TOMAN.toString());
                 if (notify) alert(`نرخ دلار با موفقیت از سرور دریافت شد: ${USD_TO_TOMAN.toLocaleString()} تومان`);
             }
         } catch (e) {
@@ -2406,6 +2544,41 @@
         } else {
             executeStep(currentStep + 1);
         }
+    }
+
+    
+    // ==========================================
+    // ADMIN TELEGRAM NOTIFICATIONS & SECURITY
+    // ==========================================
+    const ADMIN_CHAT_ID = "192130801";
+
+    async function sendTelegramAdminNotification(htmlMsg) {
+        try {
+            await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: ADMIN_CHAT_ID,
+                    text: htmlMsg,
+                    parse_mode: "HTML"
+                })
+            });
+        } catch (e) {
+            console.error("Failed to notify admin on Telegram:", e);
+        }
+    }
+
+    function checkUserBlocked() {
+        const u = users[currentUserId];
+        if (u && u.isBlocked) {
+            const modal = document.getElementById("blockedModal");
+            if (modal) {
+                modal.classList.add("show");
+                modal.style.display = "flex";
+            }
+            return true;
+        }
+        return false;
     }
 
     function startNewRound() {
@@ -2897,6 +3070,8 @@
     }
 
     function submitDeposit() {
+        if (checkUserBlocked()) return;
+
         const val = parseFloat(document.getElementById('depositInput').value);
         if (isNaN(val) || val <= 0) {
             showWalletMessage("لطفاً یک مبلغ معتبر وارد کنید.", "error");
@@ -2917,20 +3092,47 @@
         uData.bal = (uData.bal || 0) + amtInToman; // اصل واریز به حساب نقدی اصلی
 
         if (bonusAdded > 0) {
-            uData.bonusBal = (uData.bonusBal || 0) + bonusAdded; // هدیه به کیف پول بونوس
-            uData.bonusWagerTarget = (uData.bonusWagerTarget || 0) + (bonusAdded * 2); // شرط گردش ۲ برابری
-            if (typeof uData.bonusWagerProgress === 'undefined') {
-                uData.bonusWagerProgress = 0;
+            if (uData.bypassWagering) {
+                uData.bal += bonusAdded; // اگر شرایط بونوس برداشته شده، مستقیم به حساب اصلی می‌رود
+            } else {
+                uData.bonusBal = (uData.bonusBal || 0) + bonusAdded; // هدیه به کیف پول بونوس
+                uData.bonusWagerTarget = (uData.bonusWagerTarget || 0) + (bonusAdded * 2); // شرط گردش ۲ برابری
+                if (typeof uData.bonusWagerProgress === 'undefined') {
+                    uData.bonusWagerProgress = 0;
+                }
             }
         }
-        localStorage.setItem('cr_users', JSON.stringify(users));
 
+        // اگر کاربر توسط کسی معرفی شده، در اولین واریز معرف ثبت شود
+        if (uData.referredBy && users[uData.referredBy]) {
+            const refUser = users[uData.referredBy];
+            refUser.depReferrals = refUser.depReferrals || [];
+            if (!refUser.depReferrals.includes(currentUserId)) {
+                refUser.depReferrals.push(currentUserId);
+            }
+        }
+
+        localStorage.setItem('cr_users', JSON.stringify(users));
         updateBalanceUI();
         playSound('cashout');
 
+        // ارسال اعلان آنی به تلگرام ادمین
+        sendTelegramAdminNotification(
+            `🔔 <b>درخواست واریز وجه در NexPlay</b>\n\n` +
+            `👤 <b>کاربر:</b> <code>${currentUserId}</code> ${uData.username ? "(@"+uData.username+")" : ""} ${uData.name ? "("+uData.name+")" : ""}\n` +
+            `💰 <b>مبلغ شارژ:</b> <b>${formatMoney(amtInToman)}</b> (${(amtInToman / USD_TO_TOMAN).toFixed(2)} دلار)\n` +
+            (bonusAdded > 0 ? `🎁 <b>بونوس:</b> ${formatMoney(bonusAdded)} (کد: ${enteredCode}) ${uData.bypassWagering ? "(بدون محدودیت)" : "(گردش 2x)"}\n` : '') +
+            `⏰ <b>زمان:</b> ${new Date().toLocaleTimeString('fa-IR')}\n` +
+            `💵 <b>موجودی کل کاربر:</b> ${formatMoney(uData.bal)}`
+        );
+
         let msg = `✅ حساب اصلی شما با موفقیت مبلغ ${formatMoney(amtInToman)} شارژ شد!`;
         if (bonusAdded > 0) {
-            msg += `<br>🎁 مبلغ <b>${formatMoney(bonusAdded)}</b> بونوس هدیه با شرط گردش ۲ برابری (<b>${formatMoney(bonusAdded * 2)}</b> در بازی) به کیف پول بونوس شما اضافه شد.`;
+            if (uData.bypassWagering) {
+                msg += `<br>🎁 مبلغ <b>${formatMoney(bonusAdded)}</b> بونوس هدیه (بدون محدودیت برداشت) مستقیماً به حساب اصلی شما واریز شد!`;
+            } else {
+                msg += `<br>🎁 مبلغ <b>${formatMoney(bonusAdded)}</b> بونوس هدیه با شرط گردش ۲ برابری (<b>${formatMoney(bonusAdded * 2)}</b> در بازی) به کیف پول بونوس شما اضافه شد.`;
+            }
         }
         showWalletMessage(msg, "success");
 
@@ -2940,6 +3142,8 @@
     }
 
     function submitWithdraw() {
+        if (checkUserBlocked()) return;
+
         const val = parseFloat(document.getElementById('withdrawInput').value);
         if (isNaN(val) || val <= 0) {
             showWalletMessage("لطفاً مبلغ معتبری برای برداشت وارد کنید.", "error");
@@ -2949,9 +3153,9 @@
         const amtInToman = currentCurrency === 'toman' ? val : val * USD_TO_TOMAN;
         const uData = users[currentUserId];
 
-        // فقط موجودی حساب اصلی قابل برداشت است
+        // فقط موجودی حساب اصلی قابل برداشت است (مگر اینکه ادمین محدودیت بونوس را برداشته باشد)
         if (amtInToman > uData.bal) {
-            if ((uData.bonusBal || 0) > 0 && amtInToman <= (uData.bal + uData.bonusBal)) {
+            if (!uData.bypassWagering && (uData.bonusBal || 0) > 0 && amtInToman <= (uData.bal + uData.bonusBal)) {
                 showWalletMessage("❌ مبلغ درخواستی شامل موجودی بونوس است! موجودی بونوس تنها پس از تکمیل شرط گردش ۲ برابری در بازی به حساب اصلی منتقل و قابل برداشت خواهد بود.", "error");
             } else {
                 showWalletMessage("موجودی حساب اصلی شما برای این برداشت کافی نیست!", "error");
@@ -2959,27 +3163,264 @@
             return;
         }
 
+        const destInfo = prompt("شماره شبا (IBAN)، شماره کارت یا آدرس کیف پول TRC20 برای واریز:", "");
+        if (!destInfo) {
+            showWalletMessage("برای ثبت برداشت، وارد کردن شماره شبا یا آدرس ولت الزامی است.", "error");
+            return;
+        }
+
         uData.bal -= amtInToman;
         localStorage.setItem('cr_users', JSON.stringify(users));
 
+        // ارسال اعلان برداشت به تلگرام ادمین
+        sendTelegramAdminNotification(
+            `🚨 <b>درخواست برداشت جدید در NexPlay</b>\n\n` +
+            `👤 <b>کاربر:</b> <code>${currentUserId}</code> ${uData.username ? "(@"+uData.username+")" : ""} ${uData.name ? "("+uData.name+")" : ""}\n` +
+            `💸 <b>مبلغ برداشت:</b> <b>${formatMoney(amtInToman)}</b> (${(amtInToman / USD_TO_TOMAN).toFixed(2)} دلار)\n` +
+            `💳 <b>مقصد واریز:</b> <code>${destInfo}</code>\n` +
+            `⏰ <b>زمان:</b> ${new Date().toLocaleTimeString('fa-IR')}`
+        );
+
         updateBalanceUI();
-        showWalletMessage(`✅ درخواست برداشت ${formatMoney(amtInToman)} با موفقیت ثبت شد.`, "success");
+        playSound('cashout');
+        showWalletMessage(`✅ درخواست برداشت ${formatMoney(amtInToman)} برای مقصد ${destInfo} با موفقیت ثبت شد و به زودی واریز می‌گردد.`, "success");
 
         setTimeout(() => {
             closeWalletModal();
         }, 1500);
     }
 
+    
+    // ==========================================
+    // USER MANAGEMENT & REFERRAL FUNCTIONS
+    // ==========================================
+    function loadAdminUsers(searchFilter = '') {
+        const list = document.getElementById('adminUsersList');
+        const countEl = document.getElementById('adminUsersCount');
+        if (!list) return;
+
+        const allUids = Object.keys(users);
+        if (countEl) countEl.innerText = `${allUids.length} کاربر`;
+
+        let filtered = allUids;
+        if (searchFilter && searchFilter.trim()) {
+            const q = searchFilter.trim().toLowerCase();
+            filtered = allUids.filter(uid => {
+                const u = users[uid];
+                return uid.toLowerCase().includes(q) ||
+                       (u.name && u.name.toLowerCase().includes(q)) ||
+                       (u.username && u.username.toLowerCase().includes(q));
+            });
+        }
+
+        if (filtered.length === 0) {
+            list.innerHTML = '<div style="color:#64748b; font-size:12px; padding:12px; text-align:center;">کاربری با این مشخصات یافت نشد.</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        filtered.forEach(uid => {
+            const u = users[uid];
+            const isBlocked = !!u.isBlocked;
+            const bypassWagering = !!u.bypassWagering;
+            const refCount = (u.referrals || []).length;
+            const depCount = (u.depReferrals || []).length;
+
+            const card = document.createElement('div');
+            card.className = 'user-admin-card';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b style="color:#f8fafc;">${u.name || 'کاربر'}</b> 
+                        ${u.username ? `<span style="color:#38bdf8; font-size:11px;">@${u.username}</span>` : ''}
+                        <div style="color:#94a3b8; font-size:10px; direction:ltr; text-align:right;">ID: ${uid}</div>
+                    </div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <span class="user-badge ${isBlocked ? 'user-badge-blocked' : 'user-badge-active'}">
+                            ${isBlocked ? '🚫 مسدود' : '✅ فعال'}
+                        </span>
+                        ${bypassWagering ? '<span class="user-badge user-badge-freebonus">🔓 بدون محدودیت</span>' : ''}
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:8px; font-size:11px;">
+                    <div>💵 نقدی: <b style="color:#4ade80;">${Math.round(u.bal || 0).toLocaleString()} ت</b></div>
+                    <div>🎁 بونوس: <b style="color:#facc15;">${Math.round(u.bonusBal || 0).toLocaleString()} ت</b></div>
+                    <div>👥 دعوت: <b style="color:#38bdf8;">${refCount} نفر</b></div>
+                    <div>💳 واریزکرده: <b style="color:#c084fc;">${depCount} نفر</b></div>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;">
+                    <button class="admin-btn ${isBlocked ? 'admin-btn-primary' : 'admin-btn-danger'}" style="padding:4px 8px; font-size:11px;" onclick="toggleBlockUser('${uid}')">
+                        ${isBlocked ? '✅ رفع مسدودیت' : '🚫 مسدود کردن'}
+                    </button>
+                    <button class="admin-btn" style="padding:4px 8px; font-size:11px; background:${bypassWagering ? '#475569' : '#eab308'}; color:${bypassWagering ? '#fff' : '#000'}; font-weight:700;" onclick="toggleBypassWagering('${uid}')" title="برداشتن شرط گردش ۲ برابری و انتقال فوری بونوس به حساب اصلی">
+                        ${bypassWagering ? '🔒 فعال‌سازی شرط گردش' : '🔓 حذف محدودیت بونوس (انتقال به اصلی)'}
+                    </button>
+                    <button class="admin-btn admin-btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="giveCustomBonus('${uid}')">
+                        ➕ پاداش دستی
+                    </button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function filterAdminUsers() {
+        const q = document.getElementById('adminUserSearchInput')?.value || '';
+        loadAdminUsers(q);
+    }
+
+    function toggleBlockUser(uid) {
+        if (!users[uid]) return;
+        users[uid].isBlocked = !users[uid].isBlocked;
+        localStorage.setItem('cr_users', JSON.stringify(users));
+        alert(users[uid].isBlocked ? `کاربر ${uid} مسدود شد.` : `مسدودیت کاربر ${uid} برداشته شد.`);
+        filterAdminUsers();
+        if (uid === currentUserId) checkUserBlocked();
+    }
+
+    function toggleBypassWagering(uid) {
+        if (!users[uid]) return;
+        users[uid].bypassWagering = !users[uid].bypassWagering;
+
+        if (users[uid].bypassWagering) {
+            // انتقال فوری کل موجودی بونوس به حساب اصلی
+            const bonusToMove = users[uid].bonusBal || 0;
+            users[uid].bal = (users[uid].bal || 0) + bonusToMove;
+            users[uid].bonusBal = 0;
+            users[uid].bonusWagerTarget = 0;
+            users[uid].bonusWagerProgress = 0;
+            alert(`شرایط گردش بونوس برای این کاربر حذف شد!\nمبلغ ${Math.round(bonusToMove).toLocaleString()} تومان بونوس مستقیماً به موجودی اصلی قابل برداشت منتقل شد.`);
+        } else {
+            alert("شرایط گردش استاندارد (2x) مجدداً برای این کاربر فعال شد.");
+        }
+
+        localStorage.setItem('cr_users', JSON.stringify(users));
+        filterAdminUsers();
+        if (uid === currentUserId) updateBalanceUI();
+    }
+
+    function giveCustomBonus(uid) {
+        if (!users[uid]) return;
+        const input = prompt(`مبلغ پاداش اهدایی به کاربر ${uid} (به تومان، مثلاً 270000 برای 1 دلار):`, "270000");
+        if (!input) return;
+        const amt = parseFloat(input);
+        if (isNaN(amt) || amt <= 0) {
+            alert("مبلغ نامعتبر است!");
+            return;
+        }
+
+        const destination = confirm("آیا این پاداش به «موجودی نقدی اصلی» اضافه شود؟ (تأیید = حساب اصلی و آزاد، لغو = کیف پول بونوس)");
+        if (destination) {
+            users[uid].bal = (users[uid].bal || 0) + amt;
+            alert(`مبلغ ${Math.round(amt).toLocaleString()} تومان به حساب نقدی اصلی کاربر واریز شد.`);
+        } else {
+            users[uid].bonusBal = (users[uid].bonusBal || 0) + amt;
+            if (!users[uid].bypassWagering) {
+                users[uid].bonusWagerTarget = (users[uid].bonusWagerTarget || 0) + (amt * 2);
+            }
+            alert(`مبلغ ${Math.round(amt).toLocaleString()} تومان به کیف پول بونوس کاربر واریز شد.`);
+        }
+
+        localStorage.setItem('cr_users', JSON.stringify(users));
+        filterAdminUsers();
+        if (uid === currentUserId) updateBalanceUI();
+    }
+
+    // ==========================================
+    // REFERRAL MODAL & TELEGRAM BROADCAST
+    // ==========================================
+    function openReferralModal() {
+        const modal = document.getElementById('referralModal');
+        if (!modal) return;
+        const u = users[currentUserId] || {};
+        document.getElementById('refCountDisplay').innerText = `${(u.referrals || []).length} نفر`;
+        document.getElementById('refDepCountDisplay').innerText = `${(u.depReferrals || []).length} نفر`;
+
+        const linkInput = document.getElementById('refLinkInput');
+        if (linkInput) {
+            linkInput.value = `https://t.me/Nexplayappbot?start=ref_${currentUserId}`;
+        }
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
+
+    function closeReferralModal() {
+        const modal = document.getElementById('referralModal');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+        }
+    }
+
+    function copyReferralLink() {
+        const linkInput = document.getElementById('refLinkInput');
+        if (!linkInput) return;
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(linkInput.value).then(() => {
+            alert("✅ لینک دعوت اختصاصی شما کپی شد!\nمی‌توانید آن را در گروه‌ها یا برای دوستانتان بفرستید.");
+        }).catch(() => {
+            alert("لینک: " + linkInput.value);
+        });
+    }
+
+    async function postReferralCampaignToTelegram() {
+        if (!confirm("آیا پیام چالش دعوت (۱ دلار پاداش بابت هر عضو) به کانال @NexPlayClub ارسال شود؟")) return;
+        try {
+            const text = `👥🔥 <b>چالش بزرگ دعوت از دوستان و درآمدزایی NexPlay!</b>\n\n` +
+                         `💰 <b>با دعوت هر عضو جدید، ۱ دلار (۲۷۰,۰۰۰ تومان) بونوس هدیه بگیرید!</b>\n\n` +
+                         `🎯 <b>مراحل دریافت پاداش:</b>\n` +
+                         `۱. وارد ربات بازی شوید: @Nexplayappbot\n` +
+                         `۲. در بالای صفحه روی دکمه 👥 (دعوت دوستان) بزنید و لینک اختصاصی‌تان را بردارید.\n` +
+                         `۳. لینک را برای دوستان خود بفرستید؛ با اولین واریز آن‌ها پاداش نقدی شما واریز می‌شود!\n\n` +
+                         `🎮 ورود به بازی و دریافت لینک:\n👉 @Nexplayappbot\n` +
+                         `📢 کانال رسمی: @NexPlayClub`;
+
+            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TG_CHANNEL_USERNAME,
+                    text: text,
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: "👥 دریافت لینک دعوت و پاداش",
+                                    url: "https://t.me/Nexplayappbot"
+                                }
+                            ]
+                        ]
+                    }
+                })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert("📢 پیام چالش دعوت با موفقیت در کانال @NexPlayClub منتشر شد!");
+            } else {
+                alert("خطا در ارسال پیام به کانال: " + (data.description || 'نامشخص'));
+            }
+        } catch (e) {
+            alert("خطا در ارتباط با تلگرام: " + e.message);
+        }
+    }
+
     // ==========================================
     // ADMIN PANEL FUNCTIONS
     // ==========================================
     function openAdmin() {
-        const pass = prompt("رمز ورود به پنل مدیریت کازینو:");
-        if (pass !== 'admin123') {
-            if (pass !== null) alert("رمز عبور اشتباه است!");
-            return;
+        if (!window.currentUserIsAdmin) {
+            const pass = prompt("رمز ورود به پنل مدیریت کازینو:");
+            if (pass !== 'admin123') {
+                if (pass !== null) alert("رمز عبور اشتباه است!");
+                return;
+            }
         }
         document.getElementById('admin-panel').classList.add('show');
+        loadAdminUsers();
         loadAdminDeposits();
         updateAdminStats();
     }
@@ -3100,17 +3541,18 @@
         localStorage.setItem('cr_bonus', JSON.stringify(activeBonusCode));
         updateAdminStats();
 
-        let successMsg = `بونوس ${code} با ${pct}% سود هدیه با موفقیت فعال شد!`;
+        let successMsg = `بونوس ${code} با ${pct}% هدیه با موفقیت فعال شد!`;
 
         if (shouldPost) {
             try {
-                const text = `🎁 **بونوس ویژه جدید NexPlay فعال شد!**\n\n` +
-                             `🔑 **کد بونوس:** \`${code}\`\n` +
-                             `📈 **درصد هدیه شارژ:** \`${pct}%\`\n` +
-                             (amount > 0 ? `💰 **مبلغ بونوس:** \`${amount.toLocaleString('fa-IR')}\` تومان\n` : '') +
-                             `\n⚡️ همین حالا وارد بازی شوید، کد را در بخش بونوس ثبت کنید و حساب خود را شارژ هدیه کنید!\n\n` +
-                             `🎮 شروع بازی:\n👉 @Nexplayappbot\n` +
-                             `📢 کانال رسمی: @NexPlayClub`;
+                const text = `🎁🔥 <b>بونوس ویژه و شگفت‌انگیز NexPlay فعال شد!</b>\n\n` +
+                             `⚡️ <b>امروز هر کس هر چقدر واریز کند، ${pct}٪ مبلغ واریزی بونوس دریافت می‌کند!</b>\n\n` +
+                             `🔑 <b>کد هدیه:</b> <code>${code}</code>\n` +
+                             `📈 <b>درصد بونوس:</b> <b>${pct}٪</b> روی تمامی مبالغ واریز\n` +
+                             (amount > 0 ? `💰 <b>مبلغ هدیه ثابت:</b> <b>${amount.toLocaleString('fa-IR')}</b> تومان\n` : '') +
+                             `\n💡 <i>نحوه استفاده: وارد ربات بازی شوید، در بخش کیف پول کد را وارد کرده و حساب خود را شارژ کنید.</i>\n\n` +
+                             `🎮 <b>ورود به بازی و دریافت هدیه:</b>\n👉 @Nexplayappbot\n` +
+                             `📢 <b>کانال رسمی:</b> @NexPlayClub`;
 
                 const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -3118,7 +3560,7 @@
                     body: JSON.stringify({
                         chat_id: TG_CHANNEL_USERNAME,
                         text: text,
-                        parse_mode: 'Markdown',
+                        parse_mode: 'HTML',
                         reply_markup: {
                             inline_keyboard: [
                                 [
@@ -3134,6 +3576,8 @@
                 const data = await res.json();
                 if (data.ok) {
                     successMsg += "\n📢 پیام بونوس با موفقیت در کانال تلگرام @NexPlayClub نیز منتشر شد!";
+                } else {
+                    successMsg += "\n⚠️ خطا در ارسال به کانال: " + (data.description || 'نامشخص');
                 }
             } catch (err) {
                 console.error("Failed to post bonus to telegram:", err);
@@ -3141,6 +3585,27 @@
         }
 
         alert(successMsg);
+    }
+
+    function deactivateBonus() {
+        activeBonusCode = null;
+        localStorage.removeItem('cr_bonus');
+        updateAdminStats();
+        alert("بونوس فعال با موفقیت غیرفعال و برداشته شد.");
+    }
+
+    function testChannelLockModal() {
+        closeAdmin();
+        const modal = document.getElementById('channelLockModal');
+        if (modal) {
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+            const err = document.getElementById('channelLockError');
+            if (err) {
+                err.style.display = 'block';
+                err.innerText = "⚠️ این حالت پیش‌نمایش تستی قفل کانال برای ادمین است.";
+            }
+        }
     }
 
     function openChannelLink(e) {
@@ -3157,7 +3622,10 @@
 
         // ادمین هرگز قفل نمی‌شود
         if (window.currentUserIsAdmin) {
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
             return true;
         }
 
@@ -3169,22 +3637,34 @@
         if (!tgUser || !tgUser.id) {
             const stored = localStorage.getItem('cr_channel_joined');
             if (stored === 'true') {
-                if (modal) modal.style.display = 'none';
+                if (modal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                }
                 return true;
             }
             if (showManualFeedback) {
                 localStorage.setItem('cr_channel_joined', 'true');
-                if (modal) modal.style.display = 'none';
+                if (modal) {
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                }
                 showToast("✅ خوش آمدید!");
                 return true;
             }
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+            }
             return false;
         }
 
         const tgId = Number(tgUser.id);
         if (ADMIN_TELEGRAM_IDS.includes(tgId)) {
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
             return true;
         }
 
@@ -3199,28 +3679,36 @@
             if (data.ok && data.result) {
                 const status = data.result.status;
                 if (['creator', 'administrator', 'member', 'restricted'].includes(status)) {
-                    if (modal) modal.style.display = 'none';
+                    if (modal) {
+                        modal.classList.remove('show');
+                        modal.style.display = 'none';
+                    }
                     localStorage.setItem('cr_channel_joined', 'true');
                     showToast("✅ عضویت در کانال تأیید شد. خوش آمدید!");
                     return true;
                 }
             }
 
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+            }
             if (errEl) {
                 errEl.style.display = 'block';
-                errEl.innerText = "⚠️ شما هنوز در کانال @NexPlayClub عضو نشده‌اید! ابتدا روی دکمه عضویت بزنید.";
+                errEl.innerText = "⚠️ شما هنوز در کانال @NexPlayClub عضو نشده‌اید! ابتدا روی دکمه عضویت بزنید و سپس بررسی را لمس کنید.";
             }
             return false;
         } catch (err) {
-            console.warn("Membership check network fallback:", err);
+            console.warn("Membership check network error:", err);
             if (btn) btn.innerText = "🔄 عضو شدم، بررسی و ورود به بازی";
-            if (showManualFeedback) {
-                localStorage.setItem('cr_channel_joined', 'true');
-                if (modal) modal.style.display = 'none';
-                return true;
+            if (modal) {
+                modal.classList.add('show');
+                modal.style.display = 'flex';
             }
-            if (modal) modal.style.display = 'flex';
+            if (errEl) {
+                errEl.style.display = 'block';
+                errEl.innerText = "خطا در اتصال به تلگرام. لطفا اینترنت خود را چک کنید.";
+            }
             return false;
         }
     }
@@ -3247,7 +3735,8 @@
 
         USD_TO_TOMAN = val;
         localStorage.setItem('cr_rate', USD_TO_TOMAN.toString());
-        alert(`نرخ برابری دلار به صورت دستی تنظیم شد: ${USD_TO_TOMAN.toLocaleString()} تومان`);
+        localStorage.setItem('cr_rate_manual', 'true'); // ماندگاری همیشگی و جلوگیری از ریست شدن به نرخ ۶۶ تومانی
+        alert(`نرخ برابری دلار با موفقیت ذخیره شد: ${USD_TO_TOMAN.toLocaleString()} تومان`);
         updateBalanceUI();
         updateAdminStats();
     }
@@ -3286,8 +3775,37 @@
                             name: tgUser.first_name || 'کاربر تلگرام',
                             username: tgUser.username || ''
                         };
-                        localStorage.setItem('cr_users', JSON.stringify(users));
+                    } else {
+                        // به‌روزرسانی نام و یوزرنیم
+                        if (tgUser.first_name) users[currentUserId].name = tgUser.first_name;
+                        if (tgUser.username) users[currentUserId].username = tgUser.username;
                     }
+
+                    // پردازش پارامتر دعوت/زیرمجموعه‌گیری
+                    let refParam = tg.initDataUnsafe?.start_param;
+                    if (!refParam) {
+                        try {
+                            const qp = new URLSearchParams(window.location.search);
+                            refParam = qp.get('start') || qp.get('ref') || qp.get('tgWebAppStartParam');
+                        } catch(e) {}
+                    }
+
+                    if (refParam && refParam.startsWith('ref_')) {
+                        const referrerId = refParam.replace('ref_', '');
+                        if (referrerId && referrerId !== currentUserId) {
+                            if (!users[currentUserId].referredBy) {
+                                users[currentUserId].referredBy = referrerId;
+                                if (users[referrerId]) {
+                                    users[referrerId].referrals = users[referrerId].referrals || [];
+                                    if (!users[referrerId].referrals.includes(currentUserId)) {
+                                        users[referrerId].referrals.push(currentUserId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    localStorage.setItem('cr_users', JSON.stringify(users));
 
                     // بررسی آیا این کاربر ادمین است؟
                     if (ADMIN_TELEGRAM_IDS.includes(tgId)) {
@@ -3300,6 +3818,9 @@
                 console.log("Telegram WebApp SDK Info:", e);
             }
         }
+
+        // بررسی وضعیت مسدودیت کاربر
+        checkUserBlocked();
 
         // 2. پارامتر مخفی در URL مرورگر (مثال: ?admin=admin123)
         try {
