@@ -1275,6 +1275,156 @@
         direction: ltr;
         text-align: left;
     }
+
+    /* BONUS WALLET & WAGERING SYSTEM */
+    .balance-box.bonus-box {
+        background: linear-gradient(135deg, rgba(234, 179, 8, 0.16) 0%, #0d0f14 100%);
+        border: 1.5px solid #d97706;
+        color: #facc15;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .balance-box.bonus-box:hover {
+        border-color: #fde047;
+        box-shadow: 0 0 10px rgba(234, 179, 8, 0.35);
+    }
+    .wallet-selector-bar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 8px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1.5px solid #1e293b;
+        border-radius: 12px;
+        padding: 8px 10px;
+        backdrop-filter: blur(8px);
+    }
+    .wallet-selector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+    .wallet-selector-btns {
+        display: flex;
+        gap: 8px;
+    }
+    .wallet-chip {
+        flex: 1;
+        background: #0b0f19;
+        border: 1.5px solid #334155;
+        color: #94a3b8;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    .wallet-chip:hover {
+        border-color: #64748b;
+        color: #e2e8f0;
+    }
+    .wallet-chip.active {
+        color: #ffffff;
+    }
+    .wallet-chip.active#walletChipCash {
+        background: #064e3b;
+        border-color: #22c55e;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+    }
+    .wallet-chip.active#walletChipBonus {
+        background: #713f12;
+        border-color: #facc15;
+        box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+    }
+    .bonus-badge-mini {
+        background: #facc15;
+        color: #000000;
+        font-size: 10px;
+        font-weight: 900;
+        padding: 2px 6px;
+        border-radius: 10px;
+    }
+    .in-game-wager-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 4px;
+        padding-top: 6px;
+        border-top: 1px dashed #334155;
+    }
+    .wager-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: #020617;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid #1e293b;
+    }
+    .wager-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #eab308 0%, #22c55e 100%);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    .bonus-wager-alert {
+        background: rgba(234, 179, 8, 0.12);
+        border: 1px solid rgba(234, 179, 8, 0.4);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        text-align: right;
+    }
+    .withdraw-info-card {
+        background: #090a0d;
+        border: 1px solid #1e293b;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+    .withdraw-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .bonus-info-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 10px 0;
+    }
+    .bonus-stat-card {
+        background: #090a0d;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: right;
+    }
+    .bonus-stat-card .label {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+    .bonus-stat-card .val {
+        font-size: 13px;
+        font-weight: 800;
+        color: #f1f5f9;
+        direction: ltr;
+        text-align: right;
+    }
+
 </style>
 </head>
 <body>
@@ -1291,12 +1441,18 @@
             <!-- BALANCE WITH DUAL CURRENCY TOGGLE -->
             <div class="balance-wrapper">
                 <div class="currency-toggle">
-                    <button class="toggle-btn active" id="btnToman" onclick="setCurrency('toman')">تومان</button>
-                    <button class="toggle-btn" id="btnDollar" onclick="setCurrency('dollar')">$</button>
+                    <button class="toggle-btn active" id="btnToman" onclick="setCurrency(toman)">تومان</button>
+                    <button class="toggle-btn" id="btnDollar" onclick="setCurrency(dollar)">$</button>
                 </div>
-                <div class="balance-box" onclick="openWalletModal('deposit')" title="موجودی حساب کاربر (کلیک برای شارژ)">
+                <div class="balance-box" onclick="openWalletModal(deposit)" title="موجودی نقدی اصلی (کلیک برای شارژ)">
+                    <span>💵</span>
                     <span id="balanceDisplay">270,000</span>
                     <span class="currency-label" id="currencyLabel">تومان</span>
+                </div>
+                <div class="balance-box bonus-box" onclick="openWalletModal(bonus)" title="کیف پول بونوس (کلیک برای شرایط گردش ۲ برابری)">
+                    <span>🎁</span>
+                    <span id="bonusBalanceDisplay">0</span>
+                    <span class="currency-label" id="bonusCurrencyLabel">تومان</span>
                 </div>
             </div>
             
@@ -1339,7 +1495,34 @@
         </div>
 
         <!-- BET SETTINGS & DIFFICULTY -->
-        <div class="controls-top-row">
+                <!-- WALLET SELECTOR (CASH vs BONUS) -->
+        <div class="wallet-selector-bar">
+            <div class="wallet-selector-header">
+                <span>کیف پول انتخابی شرط‌بندی:</span>
+                <span style="cursor:pointer; color:#38bdf8;" onclick="openWalletModal(bonus)">شرایط گردش بونوس ℹ️</span>
+            </div>
+            <div class="wallet-selector-btns">
+                <button type="button" class="wallet-chip active" id="walletChipCash" onclick="selectBetWallet(cash)">
+                    💵 حساب اصلی (<span id="chipBalCash">270,000 تومان</span>)
+                </button>
+                <button type="button" class="wallet-chip" id="walletChipBonus" onclick="selectBetWallet(bonus)">
+                    🎁 حساب بونوس (<span id="chipBalBonus">0 تومان</span>)
+                    <span id="chipBonusStatus" class="bonus-badge-mini" style="display:none;">۲× گردش</span>
+                </button>
+            </div>
+            <!-- IN-GAME WAGER PROGRESS (when bonus wallet selected) -->
+            <div id="inGameBonusWagerBox" class="in-game-wager-box" style="display:none;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:#cbd5e1;">
+                    <span>🎯 پیشرفت گردش ۲ برابری:</span>
+                    <span id="inGameWagerText" style="color:#facc15; font-weight:bold;">0 / 0 (0%)</span>
+                </div>
+                <div class="wager-bar-bg">
+                    <div id="inGameWagerBarFill" class="wager-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+
+<div class="controls-top-row">
             <!-- BET AMOUNT -->
             <div class="bet-group">
                 <span class="bet-label">مبلغ شرط ($):</span>
@@ -1391,11 +1574,14 @@
     <div id="wallet-modal">
         <div class="wallet-card">
             <div class="wallet-tabs">
-                <button class="wallet-tab active" id="tabDeposit" onclick="switchWalletTab('deposit')">
+                <button class="wallet-tab active" id="tabDeposit" onclick="switchWalletTab(deposit)">
                     ➕ واریز / شارژ
                 </button>
-                <button class="wallet-tab" id="tabWithdraw" onclick="switchWalletTab('withdraw')">
+                <button class="wallet-tab" id="tabWithdraw" onclick="switchWalletTab(withdraw)">
                     💳 برداشت
+                </button>
+                <button class="wallet-tab" id="tabBonus" onclick="switchWalletTab(bonus)">
+                    🎁 بونوس و جوایز
                 </button>
                 <span class="close-x" onclick="closeWalletModal()" title="بستن">✖</span>
             </div>
@@ -1448,8 +1634,29 @@
 
             <!-- WITHDRAW VIEW -->
             <div id="withdrawView" class="wallet-view">
-                <div class="wallet-desc">
-                    موجودی فعلی قابل برداشت: <strong id="withdrawAvailDisplay" style="color:#4ade80;">270,000 تومان</strong>
+                <div class="withdraw-info-card">
+                    <div class="withdraw-row">
+                        <span>💵 موجودی قابل برداشت (حساب اصلی):</span>
+                        <strong id="withdrawAvailDisplay" style="color:#4ade80;">270,000 تومان</strong>
+                    </div>
+                    <div class="withdraw-row" style="margin-top:6px;">
+                        <span>🎁 موجودی کیف پول بونوس:</span>
+                        <strong id="withdrawBonusDisplay" style="color:#facc15;">0 تومان</strong>
+                    </div>
+                </div>
+
+                <!-- BONUS WAGERING WARNING / STATUS -->
+                <div id="withdrawBonusNotice" class="bonus-wager-alert" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span style="font-weight:bold; color:#facc15;">🔒 شرط گردش دوبرابری بونوس:</span>
+                        <span id="withdrawWagerPct" style="color:#fef08a; font-weight:bold;">0%</span>
+                    </div>
+                    <div class="wager-bar-bg" style="height:7px;">
+                        <div id="withdrawWagerBar" class="wager-bar-fill" style="width:0%;"></div>
+                    </div>
+                    <div id="withdrawWagerDetail" style="font-size:11px; color:#cbd5e1; margin-top:5px; line-height:1.4;">
+                        موجودی بونوس پس از ۲ برابر گردش در بازی، به حساب اصلی منتقل و قابل برداشت خواهد شد.
+                    </div>
                 </div>
 
                 <div class="quick-amounts">
@@ -1474,6 +1681,51 @@
 
                 <button class="modal-btn withdraw-action-btn" onclick="submitWithdraw()">
                     ثبت درخواست برداشت
+                </button>
+            </div>
+
+            <!-- BONUS VIEW -->
+            <div id="bonusView" class="wallet-view">
+                <div class="wallet-desc">
+                    🎁 <strong>قانون بونوس و شرط گردش دوبرابری:</strong><br>
+                    مبالغ هدیه در این کیف پول نگهداری می‌شوند. برای تبدیل بونوس به پول نقد و امکان برداشت، کافیست در بازی «حساب بونوس» را انتخاب و به اندازه <b>۲ برابر مبلغ بونوس</b> گردش مالی ثبت کنید. پس از تکمیل ۱۰۰٪، کل موجودی به حساب اصلی واریز می‌شود.
+                </div>
+
+                <div class="bonus-info-stat-grid">
+                    <div class="bonus-stat-card">
+                        <span class="label">🎁 موجودی بونوس:</span>
+                        <span class="val" id="bonusTabBalanceDisplay" style="color:#facc15;">0 تومان</span>
+                    </div>
+                    <div class="bonus-stat-card">
+                        <span class="label">🎯 هدف گردش ۲ برابری:</span>
+                        <span class="val" id="bonusTabTargetDisplay" style="color:#38bdf8;">0 تومان</span>
+                    </div>
+                    <div class="bonus-stat-card">
+                        <span class="label">🎮 گردش انجام‌شده:</span>
+                        <span class="val" id="bonusTabProgressDisplay" style="color:#4ade80;">0 تومان</span>
+                    </div>
+                    <div class="bonus-stat-card">
+                        <span class="label">📊 وضعیت تکمیل:</span>
+                        <span class="val" id="bonusTabWagerPct" style="color:#e2e8f0;">0%</span>
+                    </div>
+                </div>
+
+                <div style="margin:8px 0 14px 0;">
+                    <div class="wager-bar-bg" style="height:9px;">
+                        <div id="bonusTabWagerBar" class="wager-bar-fill" style="width:0%;"></div>
+                    </div>
+                </div>
+
+                <div class="wallet-input-group">
+                    <label>کد تخفیف یا هدیه جدید دارید؟</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="bonusTabCodeInput" placeholder="کد بونوس (مثال: NEXPLAY50)..." style="flex:1; text-transform:uppercase; letter-spacing:1px;">
+                        <button class="quick-chip" style="min-width:70px; padding:8px;" onclick="applyPromoBonus(bonus)">اعمال</button>
+                    </div>
+                </div>
+
+                <button class="modal-btn deposit-action-btn" style="background:#0284c7; border-color:#38bdf8; margin-top:8px;" onclick="switchWalletTab(deposit)">
+                    ➕ شارژ حساب جهت دریافت بونوس واریزی
                 </button>
             </div>
 
@@ -1662,9 +1914,16 @@
     localStorage.setItem('cr_uid', currentUserId);
 
     if (!users[currentUserId]) {
-        users[currentUserId] = { bal: 270000, bonusBal: 0, bonusUsed: false };
+        users[currentUserId] = { bal: 270000, bonusBal: 0, bonusWagerTarget: 0, bonusWagerProgress: 0 };
+    } else {
+        if (typeof users[currentUserId].bonusBal === 'undefined') users[currentUserId].bonusBal = 0;
+        if (typeof users[currentUserId].bonusWagerTarget === 'undefined') users[currentUserId].bonusWagerTarget = 0;
+        if (typeof users[currentUserId].bonusWagerProgress === 'undefined') users[currentUserId].bonusWagerProgress = 0;
     }
     localStorage.setItem('cr_users', JSON.stringify(users));
+
+    let selectedBetWallet = 'cash'; // 'cash' or 'bonus'
+    let roundBetWallet = 'cash';
 
     let deposits = JSON.parse(localStorage.getItem('cr_deposits') || '[]');
     let activeBonusCode = JSON.parse(localStorage.getItem('cr_bonus') || 'null');
@@ -1842,19 +2101,124 @@
         return list[step - 1];
     }
 
+    function selectBetWallet(wallet) {
+        if (isPlaying) return;
+        selectedBetWallet = wallet;
+        const btnCash = document.getElementById('walletChipCash');
+        const btnBonus = document.getElementById('walletChipBonus');
+        if (wallet === 'bonus') {
+            if (btnBonus) btnBonus.classList.add('active');
+            if (btnCash) btnCash.classList.remove('active');
+        } else {
+            if (btnCash) btnCash.classList.add('active');
+            if (btnBonus) btnBonus.classList.remove('active');
+        }
+        updateBalanceUI();
+    }
+
     function updateBalanceUI() {
-        const uData = users[currentUserId] || { bal: 0 };
+        const uData = users[currentUserId] || { bal: 0, bonusBal: 0, bonusWagerTarget: 0, bonusWagerProgress: 0 };
+        if (typeof uData.bonusBal === 'undefined') uData.bonusBal = 0;
+        if (typeof uData.bonusWagerTarget === 'undefined') uData.bonusWagerTarget = 0;
+        if (typeof uData.bonusWagerProgress === 'undefined') uData.bonusWagerProgress = 0;
+
+        // موجودی اصلی هدر
         if (currentCurrency === 'toman') {
             balanceDisplay.innerText = Math.round(uData.bal).toLocaleString('en-US');
             currencyLabel.innerText = 'تومان';
+            const bDisp = document.getElementById('bonusBalanceDisplay');
+            if (bDisp) bDisp.innerText = Math.round(uData.bonusBal).toLocaleString('en-US');
+            const bCur = document.getElementById('bonusCurrencyLabel');
+            if (bCur) bCur.innerText = 'تومان';
         } else {
             balanceDisplay.innerText = (uData.bal / USD_TO_TOMAN).toFixed(2);
             currencyLabel.innerText = '$';
+            const bDisp = document.getElementById('bonusBalanceDisplay');
+            if (bDisp) bDisp.innerText = (uData.bonusBal / USD_TO_TOMAN).toFixed(2);
+            const bCur = document.getElementById('bonusCurrencyLabel');
+            if (bCur) bCur.innerText = '$';
         }
 
+        // موجودی تراشه‌های انتخاب کیف پول شرط‌بندی
+        const chipCash = document.getElementById('chipBalCash');
+        if (chipCash) chipCash.innerText = formatMoney(uData.bal);
+        const chipBonus = document.getElementById('chipBalBonus');
+        if (chipBonus) chipBonus.innerText = formatMoney(uData.bonusBal);
+
+        // موجودی‌های بخش برداشت
         const availEl = document.getElementById('withdrawAvailDisplay');
         if (availEl) {
             availEl.innerText = formatMoney(uData.bal);
+        }
+        const withBonusEl = document.getElementById('withdrawBonusDisplay');
+        if (withBonusEl) {
+            withBonusEl.innerText = formatMoney(uData.bonusBal);
+        }
+
+        updateBonusWagerUI();
+    }
+
+    function updateBonusWagerUI() {
+        const uData = users[currentUserId] || { bal: 0, bonusBal: 0, bonusWagerTarget: 0, bonusWagerProgress: 0 };
+        const target = uData.bonusWagerTarget || 0;
+        const progress = Math.min(uData.bonusWagerProgress || 0, target > 0 ? target : (uData.bonusWagerProgress || 0));
+        const pct = target > 0 ? Math.min(100, Math.round((progress / target) * 100)) : 0;
+
+        // اخطار و نوار در تب برداشت
+        const withdrawNotice = document.getElementById('withdrawBonusNotice');
+        if (withdrawNotice) {
+            if ((uData.bonusBal || 0) > 0 && target > 0) {
+                withdrawNotice.style.display = 'block';
+                const pctEl = document.getElementById('withdrawWagerPct');
+                if (pctEl) pctEl.innerText = `${pct}%`;
+                const barEl = document.getElementById('withdrawWagerBar');
+                if (barEl) barEl.style.width = `${pct}%`;
+                const detailEl = document.getElementById('withdrawWagerDetail');
+                if (detailEl) {
+                    const remain = Math.max(0, target - progress);
+                    detailEl.innerHTML = `گردش انجام‌شده: <b>${formatMoney(progress)}</b> از هدف <b>${formatMoney(target)}</b> (${pct}% تکمیل شده). ` +
+                                         `جهت آزادسازی و برداشت، <b>${formatMoney(remain)}</b> دیگر با حساب بونوس بازی کنید.`;
+                }
+            } else {
+                withdrawNotice.style.display = 'none';
+            }
+        }
+
+        // مشخصات در تب اختصاصی بونوس
+        const bTabBal = document.getElementById('bonusTabBalanceDisplay');
+        if (bTabBal) bTabBal.innerText = formatMoney(uData.bonusBal || 0);
+        const bTabTarget = document.getElementById('bonusTabTargetDisplay');
+        if (bTabTarget) bTabTarget.innerText = formatMoney(target);
+        const bTabProg = document.getElementById('bonusTabProgressDisplay');
+        if (bTabProg) bTabProg.innerText = formatMoney(progress);
+        const bTabBar = document.getElementById('bonusTabWagerBar');
+        if (bTabBar) bTabBar.style.width = `${pct}%`;
+        const bTabPct = document.getElementById('bonusTabWagerPct');
+        if (bTabPct) bTabPct.innerText = `${pct}%`;
+
+        // بج کوچک روی دکمه حساب بونوس در گیم‌پلی
+        const chipStatus = document.getElementById('chipBonusStatus');
+        if (chipStatus) {
+            if (target > 0 && (uData.bonusBal || 0) > 0) {
+                chipStatus.style.display = 'inline-block';
+                chipStatus.innerText = `${pct}% گردش`;
+            } else {
+                chipStatus.style.display = 'none';
+            }
+        }
+
+        // نوار پیشرفت زنده در بالای دکمه‌های شرط‌بندی بازی (در صورت انتخاب حساب بونوس)
+        const inGameBox = document.getElementById('inGameBonusWagerBox');
+        if (inGameBox) {
+            if (selectedBetWallet === 'bonus' && target > 0 && (uData.bonusBal || 0) > 0) {
+                inGameBox.style.display = 'flex';
+                const textEl = document.getElementById('inGameWagerText');
+                if (textEl) textEl.innerText = `${formatMoney(progress)} / ${formatMoney(target)} (${pct}%)`;
+                const fillEl = document.getElementById('inGameWagerBarFill');
+                if (fillEl) fillEl.style.width = `${pct}%`;
+            } else {
+                inGameBox.style.display = 'none';
+            }
         }
     }
 
@@ -1885,8 +2249,9 @@
         if (isPlaying) return;
         let betToman = getBetInToman();
         betToman = Math.max(1000, Math.floor(betToman * factor));
-        const maxToman = users[currentUserId].bal;
-        betToman = Math.min(betToman, maxToman > 0 ? maxToman : betToman);
+        const uData = users[currentUserId] || {};
+        const activeBal = selectedBetWallet === 'bonus' ? (uData.bonusBal || 0) : (uData.bal || 0);
+        betToman = Math.min(betToman, activeBal > 0 ? activeBal : betToman);
 
         if (currentCurrency === 'toman') {
             betInput.value = betToman;
@@ -1897,11 +2262,12 @@
 
     function setMaxBet() {
         if (isPlaying) return;
-        const maxToman = users[currentUserId].bal;
+        const uData = users[currentUserId] || {};
+        const activeBal = selectedBetWallet === 'bonus' ? (uData.bonusBal || 0) : (uData.bal || 0);
         if (currentCurrency === 'toman') {
-            betInput.value = Math.max(1000, Math.floor(maxToman));
+            betInput.value = Math.max(1000, Math.floor(activeBal));
         } else {
-            betInput.value = Math.max(0.1, maxToman / USD_TO_TOMAN).toFixed(2);
+            betInput.value = Math.max(0.1, activeBal / USD_TO_TOMAN).toFixed(2);
         }
     }
 
@@ -2051,13 +2417,34 @@
             return;
         }
 
-        if (betTom > uData.bal) {
-            openWalletModal('deposit');
-            showWalletMessage("موجودی شما کافی نیست! لطفاً حساب خود را شارژ کنید.", "error");
-            return;
+        if (selectedBetWallet === 'bonus') {
+            const bBal = uData.bonusBal || 0;
+            if (bBal <= 0) {
+                openWalletModal('bonus');
+                showWalletMessage("موجودی کیف پول بونوس شما صفر است! برای شارژ حساب یا ثبت کد هدیه اقدام کنید.", "error");
+                return;
+            }
+            if (betTom > bBal) {
+                openWalletModal('bonus');
+                showWalletMessage("موجودی کیف پول بونوس برای این شرط کافی نیست!", "error");
+                return;
+            }
+
+            uData.bonusBal -= betTom;
+            roundBetWallet = 'bonus';
+            // افزایش پیشرفت گردش بونوس به اندازه مبلغ شرط ثبت‌شده
+            uData.bonusWagerProgress = (uData.bonusWagerProgress || 0) + betTom;
+        } else {
+            if (betTom > uData.bal) {
+                openWalletModal('deposit');
+                showWalletMessage("موجودی حساب اصلی شما کافی نیست! لطفاً حساب خود را شارژ کنید.", "error");
+                return;
+            }
+
+            uData.bal -= betTom;
+            roundBetWallet = 'cash';
         }
 
-        uData.bal -= betTom;
         localStorage.setItem('cr_users', JSON.stringify(users));
         currentBetInToman = betTom;
         updateBalanceUI();
@@ -2157,6 +2544,16 @@
         localStorage.setItem('cr_site_bal', siteBalance.toString());
         console.log(`[Defense Engine] باخت کاربر: شرط ${currentBetInToman.toLocaleString()} تومان به صندوق سایت اضافه شد. موجودی صندوق: ${siteBalance.toLocaleString()}`);
 
+        const uData = users[currentUserId];
+        if (roundBetWallet === 'bonus' && (uData.bonusBal || 0) <= 0) {
+            // بونوس باخته و صفر شد
+            uData.bonusBal = 0;
+            uData.bonusWagerTarget = 0;
+            uData.bonusWagerProgress = 0;
+            localStorage.setItem('cr_users', JSON.stringify(users));
+            selectBetWallet('cash');
+        }
+
         const targetLane = document.getElementById(`lane-${crashStep}`);
         const carIndex = Math.floor(Math.random() * CAR_MODELS.length);
         const carHtml = CAR_MODELS[carIndex];
@@ -2193,8 +2590,9 @@
             modalTitle.innerText = "💀 تصادف کردی!";
             modalMultiplier.innerText = "0.00x";
             modalMultiplier.style.color = "#ef4444";
-            let desc = `ماشین با سرعت به مرغ زد! مبلغ ${formatMoney(currentBetInToman)} از دست رفت.`;
-            if (users[currentUserId].bal < 1000) {
+            const walletTitle = roundBetWallet === 'bonus' ? 'کیف پول بونوس' : 'حساب اصلی';
+            let desc = `ماشین با سرعت به مرغ زد! مبلغ ${formatMoney(currentBetInToman)} از ${walletTitle} از دست رفت.`;
+            if (users[currentUserId].bal < 1000 && (users[currentUserId].bonusBal || 0) < 1000) {
                 desc += `<br><span style="color:#facc15;font-weight:bold;display:block;margin-top:8px;">موجودی حساب شما به پایان رسید! جهت ادامه روی واریز کلیک کنید.</span>`;
             }
             modalDesc.innerHTML = desc;
@@ -2224,9 +2622,32 @@
 
         const winAmountInToman = currentBetInToman * currentMultiplier;
         const profitInToman = winAmountInToman - currentBetInToman;
-
         const uData = users[currentUserId];
-        uData.bal += winAmountInToman;
+
+        let bonusUnlockedNotice = "";
+
+        if (roundBetWallet === 'bonus') {
+            uData.bonusBal = (uData.bonusBal || 0) + winAmountInToman;
+
+            const target = uData.bonusWagerTarget || 0;
+            const progress = uData.bonusWagerProgress || 0;
+
+            // بررسی شرط گردش ۲ برابری
+            if (target > 0 && progress >= target) {
+                const unlockedAmt = uData.bonusBal;
+                uData.bal = (uData.bal || 0) + unlockedAmt;
+                uData.bonusBal = 0;
+                uData.bonusWagerTarget = 0;
+                uData.bonusWagerProgress = 0;
+                selectedBetWallet = 'cash';
+                selectBetWallet('cash');
+
+                bonusUnlockedNotice = `<div style="margin-top:10px; padding:8px 10px; background:rgba(34,197,94,0.15); border:1.5px solid #22c55e; border-radius:10px; color:#4ade80; font-size:12px; font-weight:700;">🎉 تبریک! شرط گردش ۲ برابری بونوس تکمیل شد و کل مبلغ ${formatMoney(unlockedAmt)} به حساب اصلی شما منتقل و قابل برداشت گردید!</div>`;
+            }
+        } else {
+            uData.bal = (uData.bal || 0) + winAmountInToman;
+        }
+
         localStorage.setItem('cr_users', JSON.stringify(users));
 
         // کسر سود از صندوق سایت
@@ -2248,7 +2669,8 @@
             modalTitle.innerText = isMaxClear ? "🏆 فتح تمام جاده!" : "🎉 خروج موفق و دریافت سود!";
             modalMultiplier.innerText = formatMult(currentMultiplier);
             modalMultiplier.style.color = "#facc15";
-            modalDesc.innerHTML = `تبریک! مبلغ <b style="color:#4ade80;">${formatMoney(winAmountInToman)}</b> به کیف پول شما اضافه شد.`;
+            const walletTitle = roundBetWallet === 'bonus' ? 'کیف پول بونوس' : 'حساب اصلی';
+            modalDesc.innerHTML = `تبریک! مبلغ <b style="color:#4ade80;">${formatMoney(winAmountInToman)}</b> به ${walletTitle} شما اضافه شد.${bonusUnlockedNotice}`;
             resultModal.classList.add('show');
         }, 300);
     }
@@ -2347,24 +2769,32 @@
     function switchWalletTab(mode) {
         const tabDep = document.getElementById('tabDeposit');
         const tabWith = document.getElementById('tabWithdraw');
+        const tabBonus = document.getElementById('tabBonus');
         const viewDep = document.getElementById('depositView');
         const viewWith = document.getElementById('withdrawView');
+        const viewBonus = document.getElementById('bonusView');
 
         hideWalletMessage();
         updateWalletQuickChips();
 
+        [tabDep, tabWith, tabBonus].forEach(t => t && t.classList.remove('active'));
+        [viewDep, viewWith, viewBonus].forEach(v => v && v.classList.remove('active'));
+
         if (mode === 'deposit') {
-            tabDep.classList.add('active');
-            tabWith.classList.remove('active');
-            viewDep.classList.add('active');
-            viewWith.classList.remove('active');
-        } else {
-            tabWith.classList.add('active');
-            tabDep.classList.remove('active');
-            viewWith.classList.add('active');
-            viewDep.classList.remove('active');
-            document.getElementById('withdrawAvailDisplay').innerText = formatMoney(users[currentUserId].bal);
+            if (tabDep) tabDep.classList.add('active');
+            if (viewDep) viewDep.classList.add('active');
+        } else if (mode === 'withdraw') {
+            if (tabWith) tabWith.classList.add('active');
+            if (viewWith) viewWith.classList.add('active');
+            const availEl = document.getElementById('withdrawAvailDisplay');
+            if (availEl) availEl.innerText = formatMoney(users[currentUserId].bal);
+            const bonusEl = document.getElementById('withdrawBonusDisplay');
+            if (bonusEl) bonusEl.innerText = formatMoney(users[currentUserId].bonusBal || 0);
+        } else if (mode === 'bonus') {
+            if (tabBonus) tabBonus.classList.add('active');
+            if (viewBonus) viewBonus.classList.add('active');
         }
+        updateBonusWagerUI();
     }
 
     function setDepositAmount(amt) {
@@ -2417,10 +2847,19 @@
         }
 
         const amtInToman = currentCurrency === 'toman' ? num : num * USD_TO_TOMAN;
+        const bonusInput = document.getElementById('bonusCodeInput');
+        const enteredCode = bonusInput ? bonusInput.value.trim().toUpperCase() : '';
+        let bonusPct = 0;
+        if (activeBonusCode && enteredCode === activeBonusCode.code.toUpperCase()) {
+            bonusPct = activeBonusCode.pct;
+        }
+
         const newDep = {
             id: 'DEP-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
             uid: currentUserId,
             amount: amtInToman,
+            bonusPct: bonusPct,
+            bonusCode: bonusPct > 0 ? enteredCode : null,
             currency: currentCurrency,
             status: 'pending',
             time: new Date().toLocaleTimeString('fa-IR')
@@ -2431,8 +2870,12 @@
         showWalletMessage(`✅ درخواست واریز ${formatMoney(amtInToman)} با شناسه ${newDep.id} ثبت شد و در صف تأیید ادمین قرار گرفت.`, "success");
     }
 
-    function applyPromoBonus() {
-        const codeInput = document.getElementById('bonusCodeInput');
+    function applyPromoBonus(source = 'deposit') {
+        let inputId = source === 'bonus' ? 'bonusTabCodeInput' : 'bonusCodeInput';
+        let codeInput = document.getElementById(inputId);
+        if (!codeInput || !codeInput.value) {
+            codeInput = document.getElementById('bonusCodeInput') || document.getElementById('bonusTabCodeInput');
+        }
         const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
 
         if (!code) {
@@ -2442,7 +2885,12 @@
 
         if (activeBonusCode && activeBonusCode.code.toUpperCase() === code) {
             const bonusPct = activeBonusCode.pct;
-            showWalletMessage(`🎉 کد ${code} تایید شد! در واریز بعدی ${bonusPct}% بونوس دریافت می‌کنید.`, "success");
+            const depCodeInput = document.getElementById('bonusCodeInput');
+            if (depCodeInput) depCodeInput.value = code;
+            const tabCodeInput = document.getElementById('bonusTabCodeInput');
+            if (tabCodeInput) tabCodeInput.value = code;
+
+            showWalletMessage(`🎉 کد ${code} تایید شد! در واریز بعدی ${bonusPct}% بونوس هدیه با شرط گردش ۲ برابری دریافت می‌کنید.`, "success");
         } else {
             showWalletMessage("❌ کد بونوس وارد شده معتبر یا فعال نیست.", "error");
         }
@@ -2462,25 +2910,33 @@
         const enteredCode = bonusInput ? bonusInput.value.trim().toUpperCase() : '';
         let bonusAdded = 0;
         if (activeBonusCode && enteredCode === activeBonusCode.code.toUpperCase()) {
-            bonusAdded = amtInToman * (activeBonusCode.pct / 100);
-            amtInToman += bonusAdded;
+            bonusAdded = Math.round(amtInToman * (activeBonusCode.pct / 100));
         }
 
-        users[currentUserId].bal += amtInToman;
+        const uData = users[currentUserId];
+        uData.bal = (uData.bal || 0) + amtInToman; // اصل واریز به حساب نقدی اصلی
+
+        if (bonusAdded > 0) {
+            uData.bonusBal = (uData.bonusBal || 0) + bonusAdded; // هدیه به کیف پول بونوس
+            uData.bonusWagerTarget = (uData.bonusWagerTarget || 0) + (bonusAdded * 2); // شرط گردش ۲ برابری
+            if (typeof uData.bonusWagerProgress === 'undefined') {
+                uData.bonusWagerProgress = 0;
+            }
+        }
         localStorage.setItem('cr_users', JSON.stringify(users));
 
         updateBalanceUI();
         playSound('cashout');
 
-        let msg = `✅ حساب شما با موفقیت مبلغ ${formatMoney(amtInToman)} شارژ شد!`;
+        let msg = `✅ حساب اصلی شما با موفقیت مبلغ ${formatMoney(amtInToman)} شارژ شد!`;
         if (bonusAdded > 0) {
-            msg += ` (شامل ${formatMoney(bonusAdded)} بونوس هدیه)`;
+            msg += `<br>🎁 مبلغ <b>${formatMoney(bonusAdded)}</b> بونوس هدیه با شرط گردش ۲ برابری (<b>${formatMoney(bonusAdded * 2)}</b> در بازی) به کیف پول بونوس شما اضافه شد.`;
         }
         showWalletMessage(msg, "success");
 
         setTimeout(() => {
             closeWalletModal();
-        }, 1300);
+        }, 1800);
     }
 
     function submitWithdraw() {
@@ -2491,12 +2947,19 @@
         }
 
         const amtInToman = currentCurrency === 'toman' ? val : val * USD_TO_TOMAN;
-        if (amtInToman > users[currentUserId].bal) {
-            showWalletMessage("موجودی شما کافی نیست!", "error");
+        const uData = users[currentUserId];
+
+        // فقط موجودی حساب اصلی قابل برداشت است
+        if (amtInToman > uData.bal) {
+            if ((uData.bonusBal || 0) > 0 && amtInToman <= (uData.bal + uData.bonusBal)) {
+                showWalletMessage("❌ مبلغ درخواستی شامل موجودی بونوس است! موجودی بونوس تنها پس از تکمیل شرط گردش ۲ برابری در بازی به حساب اصلی منتقل و قابل برداشت خواهد بود.", "error");
+            } else {
+                showWalletMessage("موجودی حساب اصلی شما برای این برداشت کافی نیست!", "error");
+            }
             return;
         }
 
-        users[currentUserId].bal -= amtInToman;
+        uData.bal -= amtInToman;
         localStorage.setItem('cr_users', JSON.stringify(users));
 
         updateBalanceUI();
@@ -2504,7 +2967,7 @@
 
         setTimeout(() => {
             closeWalletModal();
-        }, 1400);
+        }, 1500);
     }
 
     // ==========================================
@@ -2586,9 +3049,19 @@
         deposits[idx].status = 'approved';
         localStorage.setItem('cr_deposits', JSON.stringify(deposits));
 
-        const uid = deposits[idx].uid;
-        if (!users[uid]) users[uid] = { bal: 0 };
-        users[uid].bal += deposits[idx].amount;
+        const dep = deposits[idx];
+        const uid = dep.uid;
+        if (!users[uid]) users[uid] = { bal: 0, bonusBal: 0, bonusWagerTarget: 0, bonusWagerProgress: 0 };
+        users[uid].bal = (users[uid].bal || 0) + dep.amount;
+
+        if (dep.bonusPct && dep.bonusPct > 0) {
+            const bonusAmt = Math.round(dep.amount * (dep.bonusPct / 100));
+            users[uid].bonusBal = (users[uid].bonusBal || 0) + bonusAmt;
+            users[uid].bonusWagerTarget = (users[uid].bonusWagerTarget || 0) + (bonusAmt * 2);
+            if (typeof users[uid].bonusWagerProgress === 'undefined') {
+                users[uid].bonusWagerProgress = 0;
+            }
+        }
         localStorage.setItem('cr_users', JSON.stringify(users));
 
         alert(`واریز ${depId} تأیید شد و مبلغ به موجودی اضافه گردید.`);
