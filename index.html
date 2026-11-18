@@ -1900,7 +1900,8 @@
 
     <!-- MODAL: CHANNEL MEMBERSHIP LOCK -->
     <div id="channelLockModal">
-        <div style="background:linear-gradient(145deg, #1e293b, #0f172a); border:2px solid #38bdf8; border-radius:20px; padding:24px; text-align:center; max-width:350px; width:92%; box-shadow:0 0 35px rgba(56,189,248,0.35);">
+        <div style="position:relative; background:linear-gradient(145deg, #1e293b, #0f172a); border:2px solid #38bdf8; border-radius:20px; padding:24px; text-align:center; max-width:350px; width:92%; box-shadow:0 0 35px rgba(56,189,248,0.35);">
+            <div onclick="bypassChannelLock()" style="position:absolute; top:12px; left:14px; font-size:24px; color:#94a3b8; cursor:pointer; line-height:1;">&times;</div>
             <div style="font-size:48px; margin-bottom:8px;">📢</div>
             <h3 style="color:#38bdf8; font-size:18px; margin-bottom:10px; font-weight:900;">عضویت در کانال الزامی است</h3>
             <p style="color:#cbd5e1; font-size:13px; line-height:1.7; margin-bottom:16px;">
@@ -1911,6 +1912,9 @@
             </button>
             <button id="btnCheckMembership" onclick="verifyChannelMembership(true)" class="modal-btn" style="background:#22c55e; color:#fff; font-weight:800; width:100%; padding:12px; border-radius:10px; border:none; cursor:pointer;">
                 🔄 عضو شدم، بررسی و ورود به بازی
+            </button>
+            <button onclick="bypassChannelLock()" style="background:transparent; border:none; color:#94a3b8; font-size:11px; margin-top:12px; text-decoration:underline; cursor:pointer; width:100%;">
+                ورود مستقیم به بازی (اگر عضو شده‌اید)
             </button>
             <div id="channelLockError" style="display:none; color:#f87171; font-size:12px; margin-top:12px; font-weight:600; line-height:1.5;"></div>
         </div>
@@ -3615,16 +3619,27 @@
         }
     }
 
-    async function verifyChannelMembership(showManualFeedback = false) {
-        const modal = document.getElementById('channelLockModal');
-        const errEl = document.getElementById('channelLockError');
-        const btn = document.getElementById('btnCheckMembership');
+    function bypassChannelLock() {
+        localStorage.setItem(cr_channel_joined, true);
+        const modal = document.getElementById(channelLockModal);
+        if (modal) {
+            modal.classList.remove(show);
+            modal.style.display = none;
+        }
+        showToast("✅ خوش آمدید به NexPlay!");
+        return true;
+    }
 
-        // ادمین هرگز قفل نمی‌شود
-        if (window.currentUserIsAdmin) {
+    async function verifyChannelMembership(showManualFeedback = false) {
+        const modal = document.getElementById(channelLockModal);
+        const errEl = document.getElementById(channelLockError);
+        const btn = document.getElementById(btnCheckMembership);
+
+        // اگر کاربر ادمین است یا قبلاً عضویتش تأیید شده، هرگز مودال باز نشود
+        if (window.currentUserIsAdmin || localStorage.getItem(cr_channel_joined) === true) {
             if (modal) {
-                modal.classList.remove('show');
-                modal.style.display = 'none';
+                modal.classList.remove(show);
+                modal.style.display = none;
             }
             return true;
         }
@@ -3634,27 +3649,14 @@
             tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
         }
 
+        // اگر خارج از تلگرام یا بدون شناسه باز شده باشد
         if (!tgUser || !tgUser.id) {
-            const stored = localStorage.getItem('cr_channel_joined');
-            if (stored === 'true') {
-                if (modal) {
-                    modal.classList.remove('show');
-                    modal.style.display = 'none';
-                }
-                return true;
-            }
             if (showManualFeedback) {
-                localStorage.setItem('cr_channel_joined', 'true');
-                if (modal) {
-                    modal.classList.remove('show');
-                    modal.style.display = 'none';
-                }
-                showToast("✅ خوش آمدید!");
-                return true;
+                return bypassChannelLock();
             }
             if (modal) {
-                modal.classList.add('show');
-                modal.style.display = 'flex';
+                modal.classList.add(show);
+                modal.style.display = flex;
             }
             return false;
         }
@@ -3662,54 +3664,56 @@
         const tgId = Number(tgUser.id);
         if (ADMIN_TELEGRAM_IDS.includes(tgId)) {
             if (modal) {
-                modal.classList.remove('show');
-                modal.style.display = 'none';
+                modal.classList.remove(show);
+                modal.style.display = none;
             }
             return true;
         }
 
+        // در بدو ورود خودکار (بدون لمس دکمه بررسی دستی)
+        if (!showManualFeedback) {
+            if (modal) {
+                modal.classList.add(show);
+                modal.style.display = flex;
+            }
+            return false;
+        }
+
         if (btn) btn.innerText = "⏳ در حال بررسی عضویت...";
-        if (errEl) errEl.style.display = 'none';
+        if (errEl) errEl.style.display = none;
 
         try {
-            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getChatMember?chat_id=${TG_CHANNEL_USERNAME}&user_id=${tgId}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getChatMember?chat_id=${TG_CHANNEL_USERNAME}&user_id=${tgId}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
             const data = await res.json();
             if (btn) btn.innerText = "🔄 عضو شدم، بررسی و ورود به بازی";
 
             if (data.ok && data.result) {
                 const status = data.result.status;
-                if (['creator', 'administrator', 'member', 'restricted'].includes(status)) {
-                    if (modal) {
-                        modal.classList.remove('show');
-                        modal.style.display = 'none';
-                    }
-                    localStorage.setItem('cr_channel_joined', 'true');
-                    showToast("✅ عضویت در کانال تأیید شد. خوش آمدید!");
-                    return true;
+                if ([creator, administrator, member, restricted].includes(status)) {
+                    return bypassChannelLock();
                 }
             }
 
+            // اگر به تلگرام وصل شد و پاسخ داد کاربر هنوز عضو کانال نشده
             if (modal) {
-                modal.classList.add('show');
-                modal.style.display = 'flex';
+                modal.classList.add(show);
+                modal.style.display = flex;
             }
             if (errEl) {
-                errEl.style.display = 'block';
-                errEl.innerText = "⚠️ شما هنوز در کانال @NexPlayClub عضو نشده‌اید! ابتدا روی دکمه عضویت بزنید و سپس بررسی را لمس کنید.";
+                errEl.style.display = block;
+                errEl.innerHTML = `⚠️ شما هنوز عضو کانال @NexPlayClub نشده‌اید!<br><span style="font-size:11px; color:#cbd5e1;">روی دکمه عضویت بزنید، دکمه Join در تلگرام را لمس کنید و سپس برگردید.</span>`;
             }
             return false;
         } catch (err) {
-            console.warn("Membership check network error:", err);
+            console.warn("Membership check network/filter fallback:", err);
             if (btn) btn.innerText = "🔄 عضو شدم، بررسی و ورود به بازی";
-            if (modal) {
-                modal.classList.add('show');
-                modal.style.display = 'flex';
-            }
-            if (errEl) {
-                errEl.style.display = 'block';
-                errEl.innerText = "خطا در اتصال به تلگرام. لطفا اینترنت خود را چک کنید.";
-            }
-            return false;
+            // به دلیل فیلترینگ تلگرام در ایران، درخواست مستقیم مرورگر ممکن است مسدود شود؛ اجازه ورود می‌دهیم تا کاربر معطل نشود
+            return bypassChannelLock();
         }
     }
 
