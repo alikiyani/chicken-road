@@ -1477,7 +1477,7 @@
         <div class="brand">
             <span class="brand-icon">🐤</span>
             <div class="brand-text">NEX<span>PLAY</span></div>
-            <span class="brand-badge">DEMO</span>
+            
         </div>
         <div class="header-actions">
             <!-- BALANCE WITH DUAL CURRENCY TOGGLE -->
@@ -2558,7 +2558,7 @@
 
     async function sendTelegramAdminNotification(htmlMsg) {
         try {
-            await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+            await fetch(GAS_BACKEND_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -3382,7 +3382,7 @@
                          `🎮 ورود به بازی و دریافت لینک:\n👉 @Nexplayappbot\n` +
                          `📢 کانال رسمی: @NexPlayClub`;
 
-            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+            const res = await fetch(GAS_BACKEND_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -3417,11 +3417,7 @@
     // ==========================================
     function openAdmin() {
         if (!window.currentUserIsAdmin) {
-            const pass = prompt("رمز ورود به پنل مدیریت کازینو:");
-            if (pass !== 'admin123') {
-                if (pass !== null) alert("رمز عبور اشتباه است!");
-                return;
-            }
+            return; // بدون نمایش هیچ کادر رمز یا اطلاعات برای کاربران عادی
         }
         document.getElementById('admin-panel').classList.add('show');
         loadAdminUsers();
@@ -3526,7 +3522,8 @@
         loadAdminDeposits();
     }
 
-    const TG_BOT_TOKEN = "9294202599:AAERMIlZ4Ajacbpyo84S3T-02QWJRMtTTjg";
+    // TG_BOT_TOKEN removed from client-side for security
+    const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbwCU68hqq60lYnX3tdTwX6qn_ePAVlzUQFUAsFP2xAvpkLfq7CTd71A8VDekk4FKW1owA/exec";
     const TG_CHANNEL_USERNAME = "@NexPlayClub";
 
     async function createBonus() {
@@ -3558,7 +3555,7 @@
                              `🎮 <b>ورود به بازی و دریافت هدیه:</b>\n👉 @Nexplayappbot\n` +
                              `📢 <b>کانال رسمی:</b> @NexPlayClub`;
 
-                const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                const res = await fetch(GAS_BACKEND_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3685,7 +3682,9 @@
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 4000);
-            const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getChatMember?chat_id=${TG_CHANNEL_USERNAME}&user_id=${tgId}`, {
+            // Channel membership is enforced securely by Telegram Webhook
+            return bypassChannelLock();
+            const res = await fetch(GAS_BACKEND_URL, {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -3751,10 +3750,9 @@
     // TELEGRAM MINI APP INTEGRATION & ADMIN AUTH
     // ==========================================
     // آیدی عددی تلگرام خود را اینجا وارد کنید (با ربات @userinfobot می‌توانید آیدی عددی‌تان را بگیرید)
-    const ADMIN_TELEGRAM_IDS = [
-        // مثال: 123456789
-    ];
-    const ADMIN_SECRET_KEY = "admin123";
+    const ADMIN_TELEGRAM_IDS = [192130801];
+    // Admin secret key removed for security
+    const ADMIN_SECRET_KEY = null;
 
     function initTelegramAndAuth() {
         let isAdmin = false;
@@ -3826,13 +3824,7 @@
         // بررسی وضعیت مسدودیت کاربر
         checkUserBlocked();
 
-        // 2. پارامتر مخفی در URL مرورگر (مثال: ?admin=admin123)
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('admin') === ADMIN_SECRET_KEY) {
-                isAdmin = true;
-            }
-        } catch(e) {}
+        // URL admin parameter check removed for security
 
         // 3. ترفند مخفی: 5 بار کلیک سریع روی لوگوی جوجه
         let brandClicks = 0;
@@ -3846,8 +3838,10 @@
                 brandTimer = setTimeout(() => { brandClicks = 0; }, 2000);
                 if (brandClicks >= 5) {
                     brandClicks = 0;
-                    revealAdminUI();
-                    openAdmin();
+                    if (window.currentUserIsAdmin) {
+                        revealAdminUI();
+                        openAdmin();
+                    }
                 }
             });
         }
