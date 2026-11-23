@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#171920">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NexPlay - Chicken Road</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Vazirmatn:wght@500;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 body{background:#0b0d10;font-family:'Vazirmatn','Montserrat',sans-serif;color:#fff;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;justify-content:center;align-items:center}
 #game-container{width:100%;height:100%;max-width:1100px;background:#12141a;display:flex;flex-direction:column;position:relative;overflow:hidden}
-.top-header{height:52px;background:#171920;display:flex;justify-content:space-between;align-items:center;padding:0 16px;z-index:100;border-bottom:2px solid #222630;flex-shrink:0}
+.top-header{height:calc(52px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px);background:#171920;display:flex;justify-content:space-between;align-items:center;padding-left:16px;padding-right:16px;z-index:100;border-bottom:2px solid #222630;flex-shrink:0}
 .brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:18px;letter-spacing:.5px;font-family:'Montserrat',sans-serif;direction:ltr}
 .brand-icon{font-size:24px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));cursor:pointer}
 .brand-text span{color:#ef4444}
@@ -189,7 +193,7 @@ body{background:#0b0d10;font-family:'Vazirmatn','Montserrat',sans-serif;color:#f
 .bonus-stat-card{background:#090a0d;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;text-align:right}
 .bonus-stat-card .label{font-size:11px;color:#94a3b8}
 .bonus-stat-card .val{font-size:13px;font-weight:800;color:#f1f5f9;direction:ltr;text-align:right}
-@media (max-width:600px){.top-header{padding:0 8px}.brand-text{display:none}.header-actions{gap:6px}.wallet-btn{padding:5px 8px;font-size:11px}}
+@media (max-width:600px){.top-header{padding:0 8px}.brand-text{display:none}.header-actions{gap:6px}.wallet-btn{padding:5px 8px;font-size:11px}#admin-panel{padding:calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 10px);align-items:flex-start;justify-content:center}#admin-panel.show{align-items:flex-start;justify-content:center}.admin-content{width:100%;max-width:100%;margin:0 auto;padding:14px;border-radius:14px;max-height:none}.admin-section{padding:11px}.admin-section input,.admin-section button{min-width:0}.admin-section-title{flex-wrap:wrap}.admin-stat-row{gap:10px;align-items:flex-start}.admin-stat-row b{max-width:58%;overflow-wrap:anywhere;text-align:left}#adminBonusPercent{width:105px!important}.admin-input{font-size:14px}}
 </style>
 </head>
 <body>
@@ -285,8 +289,9 @@ localStorage.setItem('cr_users',JSON.stringify(users));
 let selectedBetWallet='cash',roundBetWallet='cash';
 let deposits=JSON.parse(localStorage.getItem('cr_deposits')||'[]');
 let activeBonusCode=JSON.parse(localStorage.getItem('cr_bonus')||'null');
-let siteBalance=parseFloat(localStorage.getItem('cr_site_bal')||'300000000');
-const MAX_LIABILITY_RATIO=3;
+const _savedSiteBalance=Number(localStorage.getItem('cr_site_bal')); let siteBalance=Number.isFinite(_savedSiteBalance)&&_savedSiteBalance>=0?_savedSiteBalance:300000000; if(!Number.isFinite(_savedSiteBalance)||_savedSiteBalance<0)localStorage.setItem('cr_site_bal',String(siteBalance));
+const VAULT_RISK_LIMIT_PERCENT=0.25; // حداکثر ریسک مجاز در هر دست: ۲۵٪ کل موجودی صندوق
+const MAX_LIABILITY_RATIO=VAULT_RISK_LIMIT_PERCENT;
 let defenseModeActive=false;
 let isPlaying=false,currentStep=0,currentMultiplier=1.00,selectedDiff='easy',roundTraps=[],isSoundOn=true,serverSeed="",serverHash="",currentBetInToman=10000;
 
@@ -358,7 +363,7 @@ function positionChickenAt(s){const x=TRACK_PADDING+(s*LANE_WIDTH)+(LANE_WIDTH/2
 function highlightNextLane(){document.querySelectorAll('.manhole').forEach(m=>m.classList.remove('next-clickable'));const n=document.getElementById('manhole-'+(currentStep+1));if(n&&isPlaying)n.classList.add('next-clickable')}
 function updateStatsBar(){roundStatusLabel.innerText=isPlaying?"در حال بازی":"آماده شروع";roundStatusLabel.style.color=isPlaying?"#4ade80":"#94a3b8";currentStepLabel.innerText=isPlaying?'مرحله '+currentStep:"شروع (0)";currentMultStatLabel.innerText=formatMult(currentMultiplier)}
 function handleGoClick(){if(!isPlaying)startNewRound();else executeStep(currentStep+1)}
-function startNewRound(){const bt=getBetInToman();const u=users[currentUserId];if(isNaN(bt)||bt<=0){alert("مبلغ معتبر وارد کنید!");return}if(selectedBetWallet==='bonus'){const bb=u.bonusBal||0;if(bb<=0){openWalletModal('bonus');showWalletMessage("موجودی بونوس صفر است!","error");return}if(bt>bb){openWalletModal('bonus');showWalletMessage("موجودی بونوس کافی نیست!","error");return}u.bonusBal-=bt;roundBetWallet='bonus';u.bonusWagerProgress=(u.bonusWagerProgress||0)+bt}else{if(bt>u.bal){openWalletModal('deposit');showWalletMessage("موجودی اصلی کافی نیست!","error");return}u.bal-=bt;roundBetWallet='cash'}localStorage.setItem('cr_users',JSON.stringify(users));currentBetInToman=bt;updateBalanceUI();isPlaying=true;currentStep=0;currentMultiplier=1.00;defenseModeActive=false;const ds=DIFFICULTY_DATA[selectedDiff].steps;const pm=currentBetInToman*(MULTIPLIERS[selectedDiff][ds-1]-1);const mr=siteBalance*MAX_LIABILITY_RATIO;if(pm>mr)defenseModeActive=true;chickenSprite.innerHTML=CHICKEN_ALIVE_SVG;chickenBadge.innerText='1.00x';chickenBadge.style.background='#3b82f6';chicken.classList.remove('shake-screen');prepareRoundRNG();updateStatsBar();renderRoad();btnGoTitle.innerText="قدم بعدی";btnGoSub.innerText="حرکت به جلو";btnGo.style.flex="1";btnCashout.style.display="flex";updateCashoutDisplay();highlightNextLane();updateStatsBar()}
+function startNewRound(){const bt=getBetInToman();const u=users[currentUserId];if(isNaN(bt)||bt<=0){alert("مبلغ معتبر وارد کنید!");return}if(selectedBetWallet==='bonus'){const bb=u.bonusBal||0;if(bb<=0){openWalletModal('bonus');showWalletMessage("موجودی بونوس صفر است!","error");return}if(bt>bb){openWalletModal('bonus');showWalletMessage("موجودی بونوس کافی نیست!","error");return}u.bonusBal-=bt;roundBetWallet='bonus';u.bonusWagerProgress=(u.bonusWagerProgress||0)+bt}else{if(bt>u.bal){openWalletModal('deposit');showWalletMessage("موجودی اصلی کافی نیست!","error");return}u.bal-=bt;roundBetWallet='cash'}localStorage.setItem('cr_users',JSON.stringify(users));currentBetInToman=bt;updateBalanceUI();isPlaying=true;currentStep=0;currentMultiplier=1.00;defenseModeActive=false;const ds=DIFFICULTY_DATA[selectedDiff].steps;const pm=currentBetInToman*(MULTIPLIERS[selectedDiff][ds-1]-1);const maxVaultRisk=siteBalance*VAULT_RISK_LIMIT_PERCENT;if(pm>maxVaultRisk)defenseModeActive=true;chickenSprite.innerHTML=CHICKEN_ALIVE_SVG;chickenBadge.innerText='1.00x';chickenBadge.style.background='#3b82f6';chicken.classList.remove('shake-screen');prepareRoundRNG();updateStatsBar();renderRoad();btnGoTitle.innerText="قدم بعدی";btnGoSub.innerText="حرکت به جلو";btnGo.style.flex="1";btnCashout.style.display="flex";updateCashoutDisplay();highlightNextLane();updateStatsBar()}
 function executeStep(ts){if(!isPlaying||ts!==currentStep+1)return;const d=DIFFICULTY_DATA[selectedDiff];if(ts>d.steps){handleCashOut(true);return}chicken.classList.add('hopping');playSound('hop');setTimeout(()=>chicken.classList.remove('hopping'),380);currentStep=ts;positionChickenAt(ts);const it=defenseModeActive?true:roundTraps.includes(ts);if(it){triggerCarCrash(ts);return}currentMultiplier=getMultiplier(selectedDiff,ts);chickenBadge.innerText=formatMult(currentMultiplier);chickenBadge.style.background='#22c55e';const pm=document.getElementById('manhole-'+(ts-1));if(pm&&ts>0){pm.innerHTML='';const b=document.createElement('div');b.className='barricade-block';pm.appendChild(b);pm.classList.add('passed')}updateCashoutDisplay();highlightNextLane();updateStatsBar();if(currentStep===d.steps)setTimeout(()=>handleCashOut(true),500)}
 function triggerCarCrash(cs){isPlaying=false;playSound('crash');siteBalance+=currentBetInToman;localStorage.setItem('cr_site_bal',siteBalance.toString());const u=users[currentUserId];if(roundBetWallet==='bonus'&&(u.bonusBal||0)<=0){u.bonusBal=0;u.bonusWagerTarget=0;u.bonusWagerProgress=0;localStorage.setItem('cr_users',JSON.stringify(users));selectBetWallet('cash')}const tl=document.getElementById('lane-'+cs);const ci=Math.floor(Math.random()*CAR_MODELS.length);const cc=document.createElement('div');cc.innerHTML=CAR_MODELS[ci];const ce=cc.firstElementChild;ce.classList.add(Math.random()>0.5?'from-top':'from-bottom');tl.appendChild(ce);document.getElementById('game-stage').classList.add('shake-screen');setTimeout(()=>document.getElementById('game-stage').classList.remove('shake-screen'),400);const bo=document.createElement('div');bo.className='crash-boom';bo.innerText='💥';tl.appendChild(bo);setTimeout(()=>{chickenSprite.innerHTML=CHICKEN_DEAD_SVG;chickenBadge.innerText="CRASHED";chickenBadge.style.background='#ef4444'},150);revealAllTraps(cs);resetControlsAfterRound();setTimeout(()=>{modalTitle.className='lose-title';modalTitle.innerText="💀 تصادف کردی!";modalMultiplier.innerText="0.00x";modalMultiplier.style.color="#ef4444";const wt=roundBetWallet==='bonus'?'کیف پول بونوس':'حساب اصلی';let desc='ماشین زد! مبلغ '+formatMoney(currentBetInToman)+' از '+wt+' از دست رفت.';if(users[currentUserId].bal<1000&&(users[currentUserId].bonusBal||0)<1000)desc+='<br><span style="color:#facc15;font-weight:bold;display:block;margin-top:8px">موجودی تمام شد! واریز کنید.</span>';modalDesc.innerHTML=desc;resultModal.classList.add('show')},900)}
 function revealAllTraps(hs){roundTraps.forEach(ts=>{const m=document.getElementById('manhole-'+ts);if(m&&ts!==hs){m.classList.add('revealed-trap');m.innerHTML='<div style="font-size:32px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.8))">🚗</div><div style="font-size:9px;color:#fca5a5;font-weight:800;margin-top:2px">TRAP</div>'}});document.getElementById('fairSeedDisplay').innerText='تله‌ها: ['+roundTraps.sort((a,b)=>a-b).join(', ')+'] | Seed: '+serverSeed}
@@ -432,17 +437,43 @@ function closeReferralModal(){const m=document.getElementById('referralModal');i
 function copyReferralLink(){const li=document.getElementById('refLinkInput');if(!li)return;li.select();li.setSelectionRange(0,99999);navigator.clipboard.writeText(li.value).then(()=>alert("✅ لینک کپی شد!")).catch(()=>alert("لینک: "+li.value))}
 async function postReferralCampaignToTelegram(){if(!confirm("ارسال پیام چالش دعوت به کانال؟"))return;try{const t='👥🔥 <b>چالش دعوت NexPlay!</b>\n💰 <b>با هر عضو جدید، ۱ دلار بونوس!</b>\n🎯 مراحل:\n۱. وارد ربات شوید: @Nexplayappbot\n۲. دکمه 👥 را بزنید و لینک را بردارید.\n۳. با اولین واریز دوستتان پاداش بگیرید!\n🎮 ورود: @Nexplayappbot\n📢 کانال: @NexPlayClub';const r=await callServer('postChannelMsg',{text:t});if(r.ok)alert("📢 پیام در کانال منتشر شد!");else alert("خطا: "+(r.error||'نامشخص'))}catch(e){alert("خطا: "+e.message)}}
 
+function escapeBonusText(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+async function createBonus(){
+    if(!window.currentUserIsAdmin){alert('دسترسی مدیریت مجاز نیست.');return}
+    const codeEl=document.getElementById('adminBonusCode');
+    const pctEl=document.getElementById('adminBonusPercent');
+    const amtEl=document.getElementById('adminBonusAmount');
+    const code=(codeEl?.value||'').trim().toUpperCase();
+    const pct=Number(pctEl?.value);
+    const amountText=(amtEl?.value||'').trim();
+    const amount=amountText===''?0:Number(amountText);
+    if(!/^[A-Z0-9_-]{3,32}$/.test(code)){alert('کد باید ۳ تا ۳۲ حرف انگلیسی، عدد، _ یا - باشد.');return}
+    if(!Number.isFinite(pct)||pct<1||pct>1000){alert('درصد بونوس را بین ۱ تا ۱۰۰۰ وارد کنید.');return}
+    if(!Number.isFinite(amount)||amount<0){alert('مبلغ هدیه معتبر نیست.');return}
+    activeBonusCode={code:code,pct:pct,amount:amount,createdAt:Date.now()};
+    localStorage.setItem('cr_bonus',JSON.stringify(activeBonusCode));
+    updateAdminStats();
+    if(document.getElementById('postBonusToTelegram')?.checked){
+        const giftLine=amount>0?'\n🎁 مبلغ هدیه: <b>'+Math.round(amount).toLocaleString('en-US')+' تومان</b>':'';
+        try{
+            const result=await callServer('postChannelMsg',{text:'🎉 <b>بونوس NexPlay فعال شد</b>\nکد: <code>'+escapeBonusText(code)+'</code>\nدرصد بونوس: <b>'+pct+'%</b>'+giftLine+'\nبرای استفاده، کد را در بازی وارد کنید.'});
+            if(result&&result.ok){alert('کد بونوس در این مرورگر فعال شد و پیام کانال تأیید شد.')}
+            else{alert('کد بونوس در این مرورگر فعال شد؛ اما پیام کانال تأیید نشد. اتصال ربات را بررسی کنید.')}
+        }catch(err){alert('کد بونوس در این مرورگر فعال شد؛ اما ارسال پیام کانال به علت خطای اتصال تأیید نشد.')}
+    }else{alert('کد بونوس در این مرورگر فعال شد. توجه: این تنظیم هنوز بین کاربران همگام نیست.')}
+}
+function deactivateBonus(){
+    if(!window.currentUserIsAdmin){alert('دسترسی مدیریت مجاز نیست.');return}
+    activeBonusCode=null;
+    localStorage.removeItem('cr_bonus');
+    updateAdminStats();
+    alert('کد بونوس در این مرورگر غیرفعال شد.');
+}
+
 function openAdmin(){
-    if(!window.currentUserIsAdmin){
-        const pass = prompt("🔒 کد ورود به پنل مدیریت را وارد کنید:");
-        if(pass === 'NexPlay2026!' || pass === '123456'){
-            window.currentUserIsAdmin = true;
-            localStorage.setItem('cr_admin_secret', 'NexPlay2026!');
-            revealAdminUI();
-        } else {
-            if(pass) alert("❌ کد امنیتی نادرست است!");
-            return;
-        }
+    if(!window.currentUserIsAdmin||!ADMIN_TELEGRAM_IDS.includes(Number(String(currentUserId).replace('tg_','')))){
+        alert('پنل مدیریت فقط از حساب تلگرام مدیر باز می‌شود.');
+        return;
     }
     document.getElementById('admin-panel').classList.add('show');
     loadAdminUsers();
@@ -450,7 +481,7 @@ function openAdmin(){
     updateAdminStats();
 }
 function closeAdmin(){document.getElementById('admin-panel').classList.remove('show')}
-function updateAdminStats(){document.getElementById('adminSiteBalDisplay').innerText=Math.round(siteBalance).toLocaleString('en-US')+" تومان";document.getElementById('adminSiteRiskDisplay').innerText=Math.round(siteBalance*MAX_LIABILITY_RATIO).toLocaleString('en-US')+" تومان";document.getElementById('adminRateDisplay').innerText=USD_TO_TOMAN.toLocaleString('en-US')+" تومان";const sb=document.getElementById('adminDefenseStatusBadge');if(defenseModeActive){sb.innerText="فعال (محافظت)";sb.style.color="#ef4444"}else{sb.innerText="غیرفعال (عادی)";sb.style.color="#4ade80"}const bl=document.getElementById('activeBonusLabel');if(activeBonusCode){bl.innerText='کد: '+activeBonusCode.code+' ('+activeBonusCode.pct+'%)';bl.style.color='#4ade80'}else{bl.innerText="کد فعال: ندارد";bl.style.color='#94a3b8'}}
+function updateAdminStats(){if(!Number.isFinite(siteBalance)||siteBalance<0){siteBalance=300000000;localStorage.setItem('cr_site_bal',String(siteBalance))}document.getElementById('adminSiteBalDisplay').innerText=Math.round(siteBalance).toLocaleString('en-US')+" تومان";document.getElementById('adminSiteRiskDisplay').innerText=Math.round(siteBalance*VAULT_RISK_LIMIT_PERCENT).toLocaleString('en-US')+" تومان (۲۵٪ صندوق)";document.getElementById('adminRateDisplay').innerText=USD_TO_TOMAN.toLocaleString('en-US')+" تومان";const sb=document.getElementById('adminDefenseStatusBadge');if(defenseModeActive){sb.innerText="فعال (خطر کسری صندوق)";sb.style.color="#ef4444"}else{sb.innerText="غیرفعال (صندوق امن)";sb.style.color="#4ade80"}const bl=document.getElementById('activeBonusLabel');if(activeBonusCode){bl.innerText='کد: '+activeBonusCode.code+' ('+activeBonusCode.pct+'%)';bl.style.color='#4ade80'}else{bl.innerText="کد فعال: ندارد";bl.style.color='#94a3b8'}}
 function loadAdminDeposits(){const l=document.getElementById('adminDepositList');const b=document.getElementById('adminPendingCount');const p=deposits.filter(d=>d.status==='pending');if(b)b.innerText=p.length;if(p.length===0){l.innerHTML='<div style="color:#64748b;font-size:12px;padding:10px;text-align:center">واریزی در انتظار نیست.</div>';return}l.innerHTML='';p.forEach(d=>{const i=document.createElement('div');i.className='list-item';i.innerHTML='<div><b>'+d.id+'</b> | <span style="color:#4ade80">'+Math.round(d.amount).toLocaleString()+' تومان</span><br><span style="color:#64748b;font-size:11px">کاربر: '+d.uid+' | ساعت: '+d.time+'</span></div><div style="display:flex;gap:6px"><button class="admin-btn admin-btn-primary" style="padding:4px 8px;font-size:11px" onclick="approveDep(\''+d.id+'\')">تأیید</button><button class="admin-btn admin-btn-danger" style="padding:4px 8px;font-size:11px" onclick="rejectDep(\''+d.id+'\')">رد</button></div>';l.appendChild(i)})}
 function approveDep(id){const idx=deposits.findIndex(d=>d.id===id);if(idx===-1)return;deposits[idx].status='approved';localStorage.setItem('cr_deposits',JSON.stringify(deposits));const d=deposits[idx];const uid=d.uid;if(!users[uid])users[uid]={bal:0,bonusBal:0,bonusWagerTarget:0,bonusWagerProgress:0,isBlocked:false,bypassWagering:false,referrals:[],depReferrals:[]};users[uid].bal=(users[uid].bal||0)+d.amount;if(d.bonusPct&&d.bonusPct>0){const ba=Math.round(d.amount*(d.bonusPct/100));users[uid].bonusBal=(users[uid].bonusBal||0)+ba;users[uid].bonusWagerTarget=(users[uid].bonusWagerTarget||0)+(ba*2);if(typeof users[uid].bonusWagerProgress==='undefined')users[uid].bonusWagerProgress=0}localStorage.setItem('cr_users',JSON.stringify(users));alert('واریز '+id+' تأیید شد.');loadAdminDeposits();updateBalanceUI();updateAdminStats()}
 function rejectDep(id){const idx=deposits.findIndex(d=>d.id===id);if(idx===-1)return;deposits[idx].status='rejected';localStorage.setItem('cr_deposits',JSON.stringify(deposits));alert('واریز '+id+' رد شد.');loadAdminDeposits()}
@@ -466,17 +497,19 @@ function checkUserBlocked(){const u=users[currentUserId];if(u&&u.isBlocked){cons
 function initTelegramAndAuth() {
     let ia = false;
     
-    // چک کردن کد ادمین مخفی در LocalStorage
-    if (localStorage.getItem('cr_admin_secret') === 'NexPlay2026!') {
-        ia = true;
-        window.currentUserIsAdmin = true;
-    }
+    // Admin button visibility is a UI convenience, not secure authorization.
+    localStorage.removeItem('cr_admin_secret');
 
     if (window.Telegram && window.Telegram.WebApp) {
         try {
             const tg = window.Telegram.WebApp;
             tg.ready();
             tg.expand();
+            try {
+                if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor('#171920');
+                if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor('#0b0d10');
+                if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
+            } catch(e) { console.log('TG theme error:', e); }
             const tu = tg.initDataUnsafe?.user;
             
             if (tu && tu.id) {
@@ -529,31 +562,6 @@ function initTelegramAndAuth() {
 
     checkUserBlocked();
     
-    // فعال‌سازی ادمین با ۵ بار کلیک روی آیکون مرغ 🐤
-    let bc = 0; 
-    let bt = null;
-    const bi = document.querySelector('.brand-icon');
-    if (bi) {
-        bi.style.cursor = 'pointer';
-        bi.addEventListener('click', () => {
-            bc++;
-            clearTimeout(bt);
-            bt = setTimeout(() => { bc = 0; }, 2000);
-            
-            if (bc >= 5) {
-                bc = 0;
-                const secret = prompt("🔒 کد امنیتی ادمین را وارد کنید:");
-                if (secret === 'NexPlay2026!') {
-                    localStorage.setItem('cr_admin_secret', 'NexPlay2026!');
-                    revealAdminUI();
-                    openAdmin();
-                    alert("✅ حالت مدیریت فعال شد!");
-                } else if (secret) {
-                    alert("❌ کد اشتباه است!");
-                }
-            }
-        });
-    }
 
     if (ia) revealAdminUI();
 }
